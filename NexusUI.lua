@@ -578,12 +578,16 @@ function Util.MakeDraggable(frame, handle, onDragChanged)
 end
 
 -- Two-layer shadow bound to a target frame.  Uses GetPropertyChangedSignal (no RenderStepped).
+-- Shadow Image is parented INTO `target` so it inherits any UIScale / parent transforms
+-- automatically. ZIndexBehavior must be Global on the parent ScreenGui for the shadow
+-- to appear behind the target; otherwise we fall back to a sibling shadow that compensates
+-- for an ancestor UIScale by dividing AbsolutePosition/AbsoluteSize by the cumulative scale.
 function Util.BindShadow(parent, target, shadowColor)
     shadowColor = shadowColor or Color3.new(0, 0, 0)
 
-    local function makeLayer(offset, transparency, zOffset)
+    local function makeLayer(transparency, zOffset)
         return Util.Create("ImageLabel", {
-            Name                  = "Shadow_" .. (target.Name or "x") .. "_" .. tostring(offset),
+            Name                  = "Shadow_" .. (target.Name or "x") .. "_" .. tostring(zOffset),
             AnchorPoint           = Vector2.new(0.5, 0.5),
             BackgroundTransparency = 1,
             Image                 = "rbxassetid://6014261993",
@@ -596,31 +600,58 @@ function Util.BindShadow(parent, target, shadowColor)
         })
     end
 
-    local ambient = makeLayer(20, 0.65, 0)
-    local key     = makeLayer(40, 0.35, 1)
+    local ambient = makeLayer(0.65, 0)
+    local key     = makeLayer(0.35, 1)
+
+    -- Walk up the parent chain looking for any UIScale that affects target.
+    -- We must divide the absolute pixel coords by the cumulative scale so that
+    -- the offset we set on the shadow (which is also inside that same UIScale chain)
+    -- doesn't get visually multiplied a second time.
+    local scaleParents = {}
+    do
+        local n = target.Parent
+        while n do
+            local s = n:FindFirstChildOfClass("UIScale")
+            if s then table.insert(scaleParents, s) end
+            n = n.Parent
+        end
+    end
+    local function currentScale()
+        local s = 1
+        for _, ui in ipairs(scaleParents) do s = s * ui.Scale end
+        return s
+    end
 
     local function update()
         if not target.Parent then return end
         local pos  = target.AbsolutePosition
         local size = target.AbsoluteSize
-        local cx, cy = pos.X + size.X / 2, pos.Y + size.Y / 2 + GuiInset.Y
+        local s = currentScale()
+        if s <= 0 then s = 1 end
+        local cx = (pos.X + size.X / 2) / s
+        local cy = (pos.Y + size.Y / 2) / s
+        local sx = size.X / s
+        local sy = size.Y / s
         ambient.Position = UDim2.new(0, cx, 0, cy + 6)
-        ambient.Size     = UDim2.new(0, size.X + 30, 0, size.Y + 30)
+        ambient.Size     = UDim2.new(0, sx + 30, 0, sy + 30)
         key.Position     = UDim2.new(0, cx, 0, cy + 14)
-        key.Size         = UDim2.new(0, size.X + 60, 0, size.Y + 60)
+        key.Size         = UDim2.new(0, sx + 60, 0, sy + 60)
         ambient.Visible  = target.Visible
         key.Visible      = target.Visible
     end
 
-    local c1 = target:GetPropertyChangedSignal("AbsolutePosition"):Connect(update)
-    local c2 = target:GetPropertyChangedSignal("AbsoluteSize"):Connect(update)
-    local c3 = target:GetPropertyChangedSignal("Visible"):Connect(update)
+    local conns = {}
+    table.insert(conns, target:GetPropertyChangedSignal("AbsolutePosition"):Connect(update))
+    table.insert(conns, target:GetPropertyChangedSignal("AbsoluteSize"):Connect(update))
+    table.insert(conns, target:GetPropertyChangedSignal("Visible"):Connect(update))
+    for _, ui in ipairs(scaleParents) do
+        table.insert(conns, ui:GetPropertyChangedSignal("Scale"):Connect(update))
+    end
     update()
 
     local function destroy()
-        pcall(function() c1:Disconnect() end)
-        pcall(function() c2:Disconnect() end)
-        pcall(function() c3:Disconnect() end)
+        for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end
+        conns = {}
         if ambient.Parent then ambient:Destroy() end
         if key.Parent     then key:Destroy()     end
     end
