@@ -577,89 +577,71 @@ function Util.MakeDraggable(frame, handle, onDragChanged)
     end
 end
 
--- Two-layer shadow bound to a target frame.  Uses GetPropertyChangedSignal (no RenderStepped).
--- Shadow Image is parented INTO `target` so it inherits any UIScale / parent transforms
--- automatically. ZIndexBehavior must be Global on the parent ScreenGui for the shadow
--- to appear behind the target; otherwise we fall back to a sibling shadow that compensates
--- for an ancestor UIScale by dividing AbsolutePosition/AbsoluteSize by the cumulative scale.
+-- Two-layer shadow bound to a target frame.
+-- Approach: create a transparent ShadowFrame as a sibling of `target` that mirrors
+-- target's Position / Size / AnchorPoint / Visible exactly. The shadow ImageLabels live
+-- INSIDE the ShadowFrame and use Scale-relative sizing (Size = UDim2.new(1, n, 1, n))
+-- so they automatically resize/reposition along with the container — and any ancestor
+-- UIScale scales them uniformly without double-scaling math.
 function Util.BindShadow(parent, target, shadowColor)
     shadowColor = shadowColor or Color3.new(0, 0, 0)
 
-    local function makeLayer(transparency, zOffset)
+    local container = Util.Create("Frame", {
+        Name                  = "Shadow_" .. (target.Name or "x"),
+        BackgroundTransparency = 1,
+        AnchorPoint           = target.AnchorPoint,
+        Position              = target.Position,
+        Size                  = target.Size,
+        ZIndex                = (target.ZIndex or 1) - 1,
+        Parent                = parent,
+    })
+
+    local function makeLayer(transparency, padPx, yOffset, zOffset)
         return Util.Create("ImageLabel", {
-            Name                  = "Shadow_" .. (target.Name or "x") .. "_" .. tostring(zOffset),
+            Name                  = "Layer_" .. tostring(zOffset),
             AnchorPoint           = Vector2.new(0.5, 0.5),
             BackgroundTransparency = 1,
+            Position              = UDim2.new(0.5, 0, 0.5, yOffset),
+            Size                  = UDim2.new(1, padPx, 1, padPx),
             Image                 = "rbxassetid://6014261993",
             ImageColor3           = shadowColor,
             ImageTransparency     = transparency,
             ScaleType             = Enum.ScaleType.Slice,
             SliceCenter           = Rect.new(49, 49, 450, 450),
-            ZIndex                = (target.ZIndex or 1) - 2 + zOffset,
-            Parent                = parent,
+            ZIndex                = zOffset,
+            Parent                = container,
         })
     end
 
-    local ambient = makeLayer(0.65, 0)
-    local key     = makeLayer(0.35, 1)
+    -- Ambient: tight, dim, sits roughly centered (small +4 nudge for a hint of drop).
+    -- Key: wider, softer, offset +12 px down for the main "lift" effect.
+    local ambient = makeLayer(0.65, 30, 4,  1)
+    local key     = makeLayer(0.35, 60, 12, 2)
 
-    -- Walk up the parent chain looking for any UIScale that affects target.
-    -- We must divide the absolute pixel coords by the cumulative scale so that
-    -- the offset we set on the shadow (which is also inside that same UIScale chain)
-    -- doesn't get visually multiplied a second time.
-    local scaleParents = {}
-    do
-        local n = target.Parent
-        while n do
-            local s = n:FindFirstChildOfClass("UIScale")
-            if s then table.insert(scaleParents, s) end
-            n = n.Parent
-        end
-    end
-    local function currentScale()
-        local s = 1
-        for _, ui in ipairs(scaleParents) do s = s * ui.Scale end
-        return s
-    end
-
-    local function update()
-        if not target.Parent then return end
-        local pos  = target.AbsolutePosition
-        local size = target.AbsoluteSize
-        local s = currentScale()
-        if s <= 0 then s = 1 end
-        local cx = (pos.X + size.X / 2) / s
-        local cy = (pos.Y + size.Y / 2) / s
-        local sx = size.X / s
-        local sy = size.Y / s
-        ambient.Position = UDim2.new(0, cx, 0, cy + 6)
-        ambient.Size     = UDim2.new(0, sx + 30, 0, sy + 30)
-        key.Position     = UDim2.new(0, cx, 0, cy + 14)
-        key.Size         = UDim2.new(0, sx + 60, 0, sy + 60)
-        ambient.Visible  = target.Visible
-        key.Visible      = target.Visible
+    local function sync()
+        container.AnchorPoint = target.AnchorPoint
+        container.Position    = target.Position
+        container.Size        = target.Size
+        container.Visible     = target.Visible
     end
 
     local conns = {}
-    table.insert(conns, target:GetPropertyChangedSignal("AbsolutePosition"):Connect(update))
-    table.insert(conns, target:GetPropertyChangedSignal("AbsoluteSize"):Connect(update))
-    table.insert(conns, target:GetPropertyChangedSignal("Visible"):Connect(update))
-    for _, ui in ipairs(scaleParents) do
-        table.insert(conns, ui:GetPropertyChangedSignal("Scale"):Connect(update))
-    end
-    update()
+    table.insert(conns, target:GetPropertyChangedSignal("Position"):Connect(sync))
+    table.insert(conns, target:GetPropertyChangedSignal("Size"):Connect(sync))
+    table.insert(conns, target:GetPropertyChangedSignal("AnchorPoint"):Connect(sync))
+    table.insert(conns, target:GetPropertyChangedSignal("Visible"):Connect(sync))
 
     local function destroy()
         for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end
         conns = {}
-        if ambient.Parent then ambient:Destroy() end
-        if key.Parent     then key:Destroy()     end
+        if container.Parent then container:Destroy() end
     end
 
     return {
-        Layers  = { ambient = ambient, key = key },
-        Update  = update,
-        Destroy = destroy,
+        Container = container,
+        Layers    = { ambient = ambient, key = key },
+        Update    = sync,
+        Destroy   = destroy,
     }
 end
 
