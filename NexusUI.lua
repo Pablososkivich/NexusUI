@@ -577,14 +577,25 @@ function Util.MakeDraggable(frame, handle, onDragChanged)
     end
 end
 
--- Two-layer shadow bound to a target frame.
--- Approach: create a transparent ShadowFrame as a sibling of `target` that mirrors
--- target's Position / Size / AnchorPoint / Visible exactly. The shadow ImageLabels live
--- INSIDE the ShadowFrame and use Scale-relative sizing (Size = UDim2.new(1, n, 1, n))
--- so they automatically resize/reposition along with the container — and any ancestor
--- UIScale scales them uniformly without double-scaling math.
+-- Layered Frame-based shadow that automatically tracks `target`.
+-- Approach: a transparent container Frame mirrors target.AnchorPoint / Position / Size
+-- via GetPropertyChangedSignal.  Inside the container, several concentric Frames with
+-- rounded corners and progressively higher BackgroundTransparency simulate a soft drop
+-- shadow.  Scale-relative sizing means the shadow follows the target through both
+-- window resizes and UIScale changes without any pixel math.
+--
+-- The shadow visually "fades out" in 5 steps, like blurred elevation, instead of using a
+-- 9-slice Image asset whose central tile is opaque and rendered as a hard rectangle.
 function Util.BindShadow(parent, target, shadowColor)
     shadowColor = shadowColor or Color3.new(0, 0, 0)
+
+    -- target's UICorner radius determines how rounded the shadow layers should be.
+    local function getTargetCornerRadius()
+        local c = target:FindFirstChildOfClass("UICorner")
+        if c and c.CornerRadius then return c.CornerRadius.Offset end
+        return 12
+    end
+    local baseRadius = getTargetCornerRadius()
 
     local container = Util.Create("Frame", {
         Name                  = "Shadow_" .. (target.Name or "x"),
@@ -596,27 +607,42 @@ function Util.BindShadow(parent, target, shadowColor)
         Parent                = parent,
     })
 
-    local function makeLayer(transparency, padPx, yOffset, zOffset)
-        return Util.Create("ImageLabel", {
-            Name                  = "Layer_" .. tostring(zOffset),
+    -- (padPx, transparency, radiusBonus)
+    -- Closer layers are darker; outer layers fade out toward fully transparent.
+    -- radiusBonus is added to the target's corner radius so each layer follows the curve.
+    local LAYER_SPEC = {
+        { 2,  0.55, 1 },
+        { 6,  0.72, 3 },
+        { 12, 0.84, 5 },
+        { 22, 0.92, 8 },
+        { 36, 0.96, 12 },
+    }
+    local layers = {}
+
+    local function makeLayer(padPx, transparency, radiusBonus, zIdx)
+        local f = Util.Create("Frame", {
+            Name                  = "Layer_" .. tostring(zIdx),
             AnchorPoint           = Vector2.new(0.5, 0.5),
-            BackgroundTransparency = 1,
-            Position              = UDim2.new(0.5, 0, 0.5, yOffset),
-            Size                  = UDim2.new(1, padPx, 1, padPx),
-            Image                 = "rbxassetid://6014261993",
-            ImageColor3           = shadowColor,
-            ImageTransparency     = transparency,
-            ScaleType             = Enum.ScaleType.Slice,
-            SliceCenter           = Rect.new(49, 49, 450, 450),
-            ZIndex                = zOffset,
+            Position              = UDim2.new(0.5, 0, 0.5, 0),
+            Size                  = UDim2.new(1, padPx * 2, 1, padPx * 2),
+            BackgroundColor3      = shadowColor,
+            BackgroundTransparency = transparency,
+            BorderSizePixel       = 0,
+            ZIndex                = zIdx,
             Parent                = container,
         })
+        local corner = Util.Create("UICorner", {
+            CornerRadius = UDim.new(0, baseRadius + radiusBonus),
+            Parent       = f,
+        })
+        return f, corner
     end
 
-    -- Ambient: tight, dim, sits roughly centered (small +4 nudge for a hint of drop).
-    -- Key: wider, softer, offset +12 px down for the main "lift" effect.
-    local ambient = makeLayer(0.65, 30, 4,  1)
-    local key     = makeLayer(0.35, 60, 12, 2)
+    for i = #LAYER_SPEC, 1, -1 do
+        local spec  = LAYER_SPEC[i]
+        local frame = makeLayer(spec[1], spec[2], spec[3], i)
+        layers[i] = frame
+    end
 
     local function sync()
         container.AnchorPoint = target.AnchorPoint
@@ -625,11 +651,47 @@ function Util.BindShadow(parent, target, shadowColor)
         container.Visible     = target.Visible
     end
 
+    local function refreshCornerRadius()
+        local r = getTargetCornerRadius()
+        if r ~= baseRadius then
+            baseRadius = r
+            for i, spec in ipairs(LAYER_SPEC) do
+                local f = layers[i]
+                local c = f:FindFirstChildOfClass("UICorner")
+                if c then c.CornerRadius = UDim.new(0, r + spec[3]) end
+            end
+        end
+    end
+
     local conns = {}
     table.insert(conns, target:GetPropertyChangedSignal("Position"):Connect(sync))
     table.insert(conns, target:GetPropertyChangedSignal("Size"):Connect(sync))
     table.insert(conns, target:GetPropertyChangedSignal("AnchorPoint"):Connect(sync))
     table.insert(conns, target:GetPropertyChangedSignal("Visible"):Connect(sync))
+    do
+        local tc = target:FindFirstChildOfClass("UICorner")
+        if tc then
+            table.insert(conns,
+                tc:GetPropertyChangedSignal("CornerRadius"):Connect(refreshCornerRadius))
+        end
+    end
+
+    local ambient = layers[1]
+    local key     = layers[#LAYER_SPEC]
+
+    -- Animate all layers between their natural transparency and fully invisible.
+    local function setVisible(visible, dur)
+        dur = dur or 0.3
+        for i, spec in ipairs(LAYER_SPEC) do
+            local f = layers[i]
+            local goal = visible and spec[2] or 1
+            Util.Tween(f, { BackgroundTransparency = goal }, dur)
+        end
+    end
+
+    local function setColor(c)
+        for _, f in ipairs(layers) do f.BackgroundColor3 = c end
+    end
 
     local function destroy()
         for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end
@@ -638,10 +700,12 @@ function Util.BindShadow(parent, target, shadowColor)
     end
 
     return {
-        Container = container,
-        Layers    = { ambient = ambient, key = key },
-        Update    = sync,
-        Destroy   = destroy,
+        Container  = container,
+        Layers     = { ambient = ambient, key = key, all = layers },
+        Update     = sync,
+        SetVisible = setVisible,
+        SetColor   = setColor,
+        Destroy    = destroy,
     }
 end
 
@@ -1015,7 +1079,7 @@ function NexusUI:CreateWindow(config)
         ZIndex           = 10,
         Parent           = ScreenGui,
     })
-    Util.Corner(MainFrame, 12)
+    Util.Corner(MainFrame, 16)
     local mainStroke = Util.Stroke(MainFrame, Theme.Border, 1.5, 0.35)
     tracker.Register(MainFrame, "BackgroundColor3", "Background")
     tracker.Register(mainStroke, "Color", "Border")
@@ -1026,8 +1090,7 @@ function NexusUI:CreateWindow(config)
     Window.Shadow = shadow
     mainMaid:Give({ Destroy = shadow.Destroy })
     tracker.OnChanged(function(t)
-        shadow.Layers.ambient.ImageColor3 = t.Shadow
-        shadow.Layers.key.ImageColor3     = t.Shadow
+        if shadow.SetColor then shadow.SetColor(t.Shadow) end
     end)
 
     -- Animated accent line
@@ -1085,7 +1148,7 @@ function NexusUI:CreateWindow(config)
         ZIndex           = 13,
         Parent           = TopBar,
     })
-    Util.Corner(titleIconFrame, 8)
+    Util.Corner(titleIconFrame, 10)
     Util.Create("UIGradient", {
         Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(220, 220, 240)),
         Rotation = 45, Parent = titleIconFrame,
@@ -1173,7 +1236,7 @@ function NexusUI:CreateWindow(config)
             ZIndex               = 14,
             Parent               = topButtonHolder,
         })
-        Util.Corner(btn, 8)
+        Util.Corner(btn, 10)
         tracker.Register(btn, "BackgroundColor3", "Tertiary")
         local lbl = Util.Create("TextLabel", {
             Size                 = UDim2.new(1, 0, 1, 0),
@@ -1366,7 +1429,16 @@ function NexusUI:CreateWindow(config)
 
     local function showTooltip(text, position)
         TooltipLabel.Text = text
-        TooltipLabel.Position = UDim2.new(0, position.X + 12, 0, position.Y + 24 + GuiInset.Y)
+        -- TooltipLabel lives inside ScreenGui which has UIScale on it.  GetMouse() returns
+        -- raw screen pixels (unscaled), so we must divide by the cumulative UIScale before
+        -- assigning Offset, otherwise Roblox re-applies UIScale to the offset and the
+        -- tooltip drifts off in a corner whenever DPI scale != 1.
+        local s = (rootScale and rootScale.Scale) or 1
+        if s <= 0 then s = 1 end
+        TooltipLabel.Position = UDim2.new(
+            0, (position.X + 12 + GuiInset.X) / s,
+            0, (position.Y + 24 + GuiInset.Y) / s
+        )
         TooltipLabel.Visible = true
         Util.Tween(TooltipLabel, { TextTransparency = 0, BackgroundTransparency = 0 }, 0.15)
     end
@@ -1442,9 +1514,8 @@ function NexusUI:CreateWindow(config)
         Window.Visible = visible
         if visible then
             MainFrame.Visible = true
-            if shadow then
-                Util.Tween(shadow.Layers.ambient, { ImageTransparency = 0.65 }, 0.3)
-                Util.Tween(shadow.Layers.key,     { ImageTransparency = 0.35 }, 0.3)
+            if shadow and shadow.SetVisible then
+                shadow.SetVisible(true, 0.3)
             end
             local targetSize = Window.Minimized and UDim2.new(0, cfg.Size.X.Offset, 0, 52) or cfg.Size
             MainFrame.Size = UDim2.new(0, targetSize.X.Offset, 0, 0)
@@ -1463,9 +1534,8 @@ function NexusUI:CreateWindow(config)
             Util.Tween(MainFrame,
                 { Size = UDim2.new(0, MainFrame.AbsoluteSize.X, 0, 0) },
                 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-            if shadow then
-                Util.Tween(shadow.Layers.ambient, { ImageTransparency = 1 }, 0.25)
-                Util.Tween(shadow.Layers.key,     { ImageTransparency = 1 }, 0.25)
+            if shadow and shadow.SetVisible then
+                shadow.SetVisible(false, 0.25)
             end
             task.delay(0.35, function()
                 if not Window.Visible then MainFrame.Visible = false end
@@ -1488,9 +1558,8 @@ function NexusUI:CreateWindow(config)
         Window.Alive = false
         Util.Tween(MainFrame, { Size = UDim2.new(0, 0, 0, 0) },
             0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        if shadow then
-            Util.Tween(shadow.Layers.ambient, { ImageTransparency = 1 }, 0.35)
-            Util.Tween(shadow.Layers.key,     { ImageTransparency = 1 }, 0.35)
+        if shadow and shadow.SetVisible then
+            shadow.SetVisible(false, 0.35)
         end
         for _, fw in pairs(Window.FloatingWindows) do
             if fw.Frame and fw.Frame.Parent then
@@ -1612,7 +1681,7 @@ function NexusUI:CreateWindow(config)
             ZIndex            = 500,
             Parent            = ScreenGui,
         })
-        Util.Corner(palette, 12)
+        Util.Corner(palette, 14)
         Util.Stroke(palette, Theme.BorderStrong, 1.5, 0.3)
         tracker.Register(palette, "BackgroundColor3", "Secondary")
         local pBlur = Util.Create("TextButton", {
@@ -1783,7 +1852,7 @@ function NexusUI:CreateWindow(config)
             ZIndex            = 500,
             Parent            = ScreenGui,
         })
-        Util.Corner(palette, 12)
+        Util.Corner(palette, 14)
         Util.Stroke(palette, Theme.BorderStrong, 1.5, 0.3)
         tracker.Register(palette, "BackgroundColor3", "Secondary")
         local pBlur = Util.Create("TextButton", {
@@ -1960,7 +2029,7 @@ function NexusUI:CreateWindow(config)
             ZIndex               = 801,
             Parent               = ScreenGui,
         })
-        Util.Corner(dlg, 12)
+        Util.Corner(dlg, 16)
         Util.Stroke(dlg, Theme.BorderStrong, 1.5, 0.3)
         Util.Padding(dlg, 20, 20, 20, 20)
         Util.ListLayout(dlg, Enum.FillDirection.Vertical, 12,
@@ -2694,7 +2763,7 @@ function NexusUI:CreateWindow(config)
             ZIndex                = 13,
             Parent                = TabButtonScroll,
         })
-        Util.Corner(btn, 8)
+        Util.Corner(btn, 12)
 
         local activeIndicator = Util.Create("Frame", {
             Size                  = UDim2.new(0, 3, 0, 18),
@@ -2996,7 +3065,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.5)
             Util.Padding(frame, 10, 10, 12, 12)
             Util.ListLayout(frame, Enum.FillDirection.Vertical, 4)
@@ -3043,7 +3112,7 @@ function NexusUI:CreateWindow(config)
                 Text = "", AutoButtonColor = false,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             Util.Ripple(frame)
             tracker.Register(frame, "BackgroundColor3", "Card")
@@ -3126,7 +3195,7 @@ function NexusUI:CreateWindow(config)
                 Text = "", AutoButtonColor = false,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -3333,7 +3402,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -3511,7 +3580,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -3680,7 +3749,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -3788,7 +3857,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -3857,7 +3926,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             Util.Padding(frame, 8, 8, 12, 12)
             Util.ListLayout(frame, Enum.FillDirection.Vertical, 6)
@@ -3939,7 +4008,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             Util.Padding(frame, 10, 10, 14, 14)
             Util.ListLayout(frame, Enum.FillDirection.Vertical, 6)
@@ -4049,7 +4118,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -4149,7 +4218,7 @@ function NexusUI:CreateWindow(config)
                 ClipsDescendants = false,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -4497,7 +4566,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -4606,7 +4675,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -4671,7 +4740,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -4804,7 +4873,7 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = Theme.Card, BorderSizePixel = 0,
                 LayoutOrder = nextOrder(), ZIndex = 13, Parent = page,
             })
-            Util.Corner(frame, 8)
+            Util.Corner(frame, 10)
             Util.Stroke(frame, Theme.Border, 1, 0.6)
             tracker.Register(frame, "BackgroundColor3", "Card")
 
@@ -5384,7 +5453,7 @@ function NexusUI:CreateWindow(config)
             ClipsDescendants  = true,
             ZIndex            = 202, Parent = wrapper,
         })
-        Util.Corner(notif, 8)
+        Util.Corner(notif, 12)
         Util.Stroke(notif, Theme.Border, 1, 0.5)
         tracker.Register(notif, "BackgroundColor3", "Secondary")
 
