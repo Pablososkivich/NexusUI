@@ -785,7 +785,7 @@ local function makeThemeTracker(getTheme)
     local entries = {}
     local listeners = {}
 
-    local GLASS_ALPHA = { Background = 0.08, Secondary = 0.10, Card = 0.08, Page = 0.10 }
+    local GLASS_ALPHA = { Background = 0.18, Secondary = 0.22, Card = 0.28, Page = 0.18 }
     local function register(instance, property, themeKey)
         if not instance or not property or not themeKey then return end
         table.insert(entries, { i = instance, p = property, k = themeKey })
@@ -840,7 +840,7 @@ function NexusUI:CreateWindow(config)
         MaxSize     = config.MaxSize     or Vector2.new(1100, 800),
         KeyBind     = config.KeyBind     or Enum.KeyCode.RightShift,
         Resizable   = (config.Resizable ~= false),
-        Acrylic     = (config.Acrylic == true),
+        Acrylic     = (config.Acrylic ~= false),
         AcrylicSize = config.AcrylicSize or 24,
         Sounds      = (config.Sounds == true),
         AutoSave    = config.AutoSave,    -- string: config name auto-saves on flag change
@@ -1086,7 +1086,7 @@ function NexusUI:CreateWindow(config)
         ZIndex           = 10,
         Parent           = ScreenGui,
     })
-    Util.Corner(MainFrame, 18)
+    Util.Corner(MainFrame, 26)
     Util.Create("UIGradient", {
         Rotation = 90,
         Color = ColorSequence.new({
@@ -1096,7 +1096,7 @@ function NexusUI:CreateWindow(config)
         Parent = MainFrame,
     })
     local mainStroke = Util.Stroke(MainFrame, Theme.Border, 1.5, 0.3)
-    MainFrame.BackgroundTransparency = 0.06
+    MainFrame.BackgroundTransparency = 0.15
     tracker.Register(MainFrame, "BackgroundColor3", "Background")
     tracker.Register(mainStroke, "Color", "Border")
     Window.MainFrame = MainFrame
