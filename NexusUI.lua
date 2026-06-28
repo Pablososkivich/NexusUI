@@ -611,60 +611,56 @@ end
 function Util.BindShadow(parent, target, shadowColor)
     shadowColor = shadowColor or Color3.new(0, 0, 0)
 
-    -- target's UICorner radius determines how rounded the shadow layers should be.
-    local function getTargetCornerRadius()
-        local c = target:FindFirstChildOfClass("UICorner")
-        if c and c.CornerRadius then return c.CornerRadius.Offset end
-        return 12
-    end
-    local baseRadius = getTargetCornerRadius()
+    -- Clean, diffuse drop shadow from a soft 9-sliced sprite (no boxy frame-stack
+    -- banding).  Two layers: a wide ambient halo + a tighter, slightly-dropped key
+    -- shadow for real directional "lift".  Follows the target via Scale sizing.
+    local SHADOW_IMG = "rbxassetid://6014261993"
+    local SLICE      = Rect.new(49, 49, 450, 450)
+    local AMB_SPREAD = 40
+    local KEY_SPREAD = 22
+    local KEY_DROP   = 14
+    local AMB_T      = 0.74
+    local KEY_T      = 0.50
 
     local container = Util.Create("Frame", {
-        Name                  = "Shadow_" .. (target.Name or "x"),
+        Name                   = "Shadow",
         BackgroundTransparency = 1,
-        AnchorPoint           = target.AnchorPoint,
-        Position              = target.Position,
-        Size                  = target.Size,
-        ZIndex                = (target.ZIndex or 1) - 1,
-        Parent                = parent,
+        AnchorPoint            = target.AnchorPoint,
+        Position               = target.Position,
+        Size                   = target.Size,
+        ZIndex                 = (target.ZIndex or 1) - 1,
+        Parent                 = parent,
     })
 
-    -- (padPx, transparency, radiusBonus)
-    -- Closer layers are darker; outer layers fade out toward fully transparent.
-    -- radiusBonus is added to the target's corner radius so each layer follows the curve.
-    local LAYER_SPEC = {
-        { 3,  0.50, 1 },
-        { 8,  0.66, 3 },
-        { 16, 0.80, 6 },
-        { 28, 0.90, 10 },
-        { 46, 0.95, 16 },
-    }
-    local layers = {}
+    local ambient = Util.Create("ImageLabel", {
+        Name                   = "Ambient",
+        BackgroundTransparency = 1,
+        AnchorPoint            = Vector2.new(0.5, 0.5),
+        Position               = UDim2.new(0.5, 0, 0.5, 4),
+        Size                   = UDim2.new(1, AMB_SPREAD * 2, 1, AMB_SPREAD * 2),
+        Image                  = SHADOW_IMG,
+        ImageColor3            = shadowColor,
+        ImageTransparency      = AMB_T,
+        ScaleType              = Enum.ScaleType.Slice,
+        SliceCenter            = SLICE,
+        ZIndex                 = container.ZIndex,
+        Parent                 = container,
+    })
 
-    local function makeLayer(padPx, transparency, radiusBonus, zIdx)
-        local f = Util.Create("Frame", {
-            Name                  = "Layer_" .. tostring(zIdx),
-            AnchorPoint           = Vector2.new(0.5, 0.5),
-            Position              = UDim2.new(0.5, 0, 0.5, 0),
-            Size                  = UDim2.new(1, padPx * 2, 1, padPx * 2),
-            BackgroundColor3      = shadowColor,
-            BackgroundTransparency = transparency,
-            BorderSizePixel       = 0,
-            ZIndex                = zIdx,
-            Parent                = container,
-        })
-        local corner = Util.Create("UICorner", {
-            CornerRadius = UDim.new(0, baseRadius + radiusBonus),
-            Parent       = f,
-        })
-        return f, corner
-    end
-
-    for i = #LAYER_SPEC, 1, -1 do
-        local spec  = LAYER_SPEC[i]
-        local frame = makeLayer(spec[1], spec[2], spec[3], i)
-        layers[i] = frame
-    end
+    local key = Util.Create("ImageLabel", {
+        Name                   = "Key",
+        BackgroundTransparency = 1,
+        AnchorPoint            = Vector2.new(0.5, 0.5),
+        Position               = UDim2.new(0.5, 0, 0.5, KEY_DROP),
+        Size                   = UDim2.new(1, KEY_SPREAD * 2, 1, KEY_SPREAD * 2),
+        Image                  = SHADOW_IMG,
+        ImageColor3            = shadowColor,
+        ImageTransparency      = KEY_T,
+        ScaleType              = Enum.ScaleType.Slice,
+        SliceCenter            = SLICE,
+        ZIndex                 = container.ZIndex,
+        Parent                 = container,
+    })
 
     local function sync()
         container.AnchorPoint = target.AnchorPoint
@@ -673,57 +669,32 @@ function Util.BindShadow(parent, target, shadowColor)
         container.Visible     = target.Visible
     end
 
-    local function refreshCornerRadius()
-        local r = getTargetCornerRadius()
-        if r ~= baseRadius then
-            baseRadius = r
-            for i, spec in ipairs(LAYER_SPEC) do
-                local f = layers[i]
-                local c = f:FindFirstChildOfClass("UICorner")
-                if c then c.CornerRadius = UDim.new(0, r + spec[3]) end
-            end
-        end
-    end
-
     local conns = {}
     table.insert(conns, target:GetPropertyChangedSignal("Position"):Connect(sync))
     table.insert(conns, target:GetPropertyChangedSignal("Size"):Connect(sync))
     table.insert(conns, target:GetPropertyChangedSignal("AnchorPoint"):Connect(sync))
-    table.insert(conns, target:GetPropertyChangedSignal("Visible"):Connect(sync))
-    do
-        local tc = target:FindFirstChildOfClass("UICorner")
-        if tc then
-            table.insert(conns,
-                tc:GetPropertyChangedSignal("CornerRadius"):Connect(refreshCornerRadius))
-        end
-    end
 
-    local ambient = layers[1]
-    local key     = layers[#LAYER_SPEC]
-
-    -- Animate all layers between their natural transparency and fully invisible.
     local function setVisible(visible, dur)
         dur = dur or 0.3
-        for i, spec in ipairs(LAYER_SPEC) do
-            local f = layers[i]
-            local goal = visible and spec[2] or 1
-            Util.Tween(f, { BackgroundTransparency = goal }, dur)
-        end
+        Util.Tween(ambient, { ImageTransparency = visible and AMB_T or 1 }, dur)
+        Util.Tween(key,     { ImageTransparency = visible and KEY_T or 1 }, dur)
     end
 
     local function setColor(c)
-        for _, f in ipairs(layers) do f.BackgroundColor3 = c end
+        if not c then return end
+        ambient.ImageColor3 = c
+        key.ImageColor3     = c
     end
 
     local function destroy()
         for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end
         conns = {}
-        if container.Parent then container:Destroy() end
+        if container and container.Parent then container:Destroy() end
     end
 
     return {
         Container  = container,
-        Layers     = { ambient = ambient, key = key, all = layers },
+        Layers     = { ambient = ambient, key = key, all = { ambient, key } },
         Update     = sync,
         SetVisible = setVisible,
         SetColor   = setColor,
@@ -814,6 +785,7 @@ local function makeThemeTracker(getTheme)
     local entries = {}
     local listeners = {}
 
+    local GLASS_ALPHA = { Background = 0.08, Secondary = 0.10, Card = 0.08, Page = 0.10 }
     local function register(instance, property, themeKey)
         if not instance or not property or not themeKey then return end
         table.insert(entries, { i = instance, p = property, k = themeKey })
@@ -821,6 +793,7 @@ local function makeThemeTracker(getTheme)
         local theme = getTheme()
         if theme[themeKey] then
             pcall(function() instance[property] = theme[themeKey] end)
+            if property == "BackgroundColor3" and GLASS_ALPHA[themeKey] then pcall(function() instance.BackgroundTransparency = GLASS_ALPHA[themeKey] end) end
         end
     end
 
@@ -867,8 +840,8 @@ function NexusUI:CreateWindow(config)
         MaxSize     = config.MaxSize     or Vector2.new(1100, 800),
         KeyBind     = config.KeyBind     or Enum.KeyCode.RightShift,
         Resizable   = (config.Resizable ~= false),
-        Acrylic     = (config.Acrylic == true),
-        AcrylicSize = config.AcrylicSize or 16,
+        Acrylic     = (config.Acrylic ~= false),
+        AcrylicSize = config.AcrylicSize or 24,
         Sounds      = (config.Sounds == true),
         AutoSave    = config.AutoSave,    -- string: config name auto-saves on flag change
         AutoLoad    = config.AutoLoad,    -- string: config name auto-loads on open
@@ -1113,8 +1086,17 @@ function NexusUI:CreateWindow(config)
         ZIndex           = 10,
         Parent           = ScreenGui,
     })
-    Util.Corner(MainFrame, 14)
-    local mainStroke = Util.Stroke(MainFrame, Theme.Border, 1.5, 0.35)
+    Util.Corner(MainFrame, 18)
+    Util.Create("UIGradient", {
+        Rotation = 90,
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(226, 227, 233)),
+        }),
+        Parent = MainFrame,
+    })
+    local mainStroke = Util.Stroke(MainFrame, Theme.Border, 1.5, 0.3)
+    MainFrame.BackgroundTransparency = 0.06
     tracker.Register(MainFrame, "BackgroundColor3", "Background")
     tracker.Register(mainStroke, "Color", "Border")
     Window.MainFrame = MainFrame
