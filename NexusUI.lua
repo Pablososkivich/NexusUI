@@ -840,7 +840,7 @@ function NexusUI:CreateWindow(config)
         MaxSize     = config.MaxSize     or Vector2.new(1100, 800),
         KeyBind     = config.KeyBind     or Enum.KeyCode.RightShift,
         Resizable   = (config.Resizable ~= false),
-        Acrylic     = (config.Acrylic ~= false),
+        Acrylic     = (config.Acrylic == true),
         AcrylicSize = config.AcrylicSize or 24,
         Sounds      = (config.Sounds == true),
         AutoSave    = config.AutoSave,    -- string: config name auto-saves on flag change
@@ -1109,27 +1109,7 @@ function NexusUI:CreateWindow(config)
         if shadow.SetColor then shadow.SetColor(t.Shadow) end
     end)
 
-    -- Animated accent line
-    local accentLine = Util.Create("Frame", {
-        Size             = UDim2.new(1, 0, 0, 2),
-        BackgroundColor3 = Theme.Accent,
-        BorderSizePixel  = 0,
-        ZIndex           = 11,
-        Parent           = MainFrame,
-    })
-    Util.AnimatedAccent(accentLine, Theme)
-    tracker.Register(accentLine, "BackgroundColor3", "Accent")
-    tracker.OnChanged(function(t)
-        for _, g in ipairs(accentLine:GetChildren()) do
-            if g:IsA("UIGradient") then
-                g.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0,   t.AccentDark),
-                    ColorSequenceKeypoint.new(0.5, t.AccentLight),
-                    ColorSequenceKeypoint.new(1,   t.AccentDark),
-                })
-            end
-        end
-    end)
+    -- (top accent line removed)
 
     -- ═══════════════════════════════
     -- TOP BAR
@@ -1531,6 +1511,9 @@ function NexusUI:CreateWindow(config)
             if shadow and shadow.SetVisible then
                 shadow.SetVisible(true, 0.3)
             end
+            if cfg.Acrylic and blurEffect then
+                Util.Tween(blurEffect, { Size = cfg.AcrylicSize }, 0.3)
+            end
             local targetSize = Window.Minimized and UDim2.new(0, cfg.Size.X.Offset, 0, 52) or cfg.Size
             MainFrame.Size = UDim2.new(0, targetSize.X.Offset, 0, 0)
             Util.Tween(MainFrame, { Size = targetSize },
@@ -1548,6 +1531,9 @@ function NexusUI:CreateWindow(config)
             Util.Tween(MainFrame,
                 { Size = UDim2.new(0, MainFrame.AbsoluteSize.X, 0, 0) },
                 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            if blurEffect then
+                Util.Tween(blurEffect, { Size = 0 }, 0.25)
+            end
             if shadow and shadow.SetVisible then
                 shadow.SetVisible(false, 0.25)
             end
