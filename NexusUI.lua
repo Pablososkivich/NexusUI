@@ -834,7 +834,7 @@ function NexusUI:CreateWindow(config)
         MaxSize     = config.MaxSize     or Vector2.new(1100, 800),
         KeyBind     = config.KeyBind     or Enum.KeyCode.RightShift,
         Resizable   = (config.Resizable ~= false),
-        Acrylic     = (config.Acrylic ~= false),
+        Acrylic     = (config.Acrylic == true),
         AcrylicSize = config.AcrylicSize or 24,
         Sounds      = (config.Sounds == true),
         AutoSave    = config.AutoSave,    -- string: config name auto-saves on flag change
