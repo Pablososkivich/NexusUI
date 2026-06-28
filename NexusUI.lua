@@ -609,18 +609,21 @@ end
 -- The shadow visually "fades out" in 5 steps, like blurred elevation, instead of using a
 -- 9-slice Image asset whose central tile is opaque and rendered as a hard rectangle.
 function Util.BindShadow(parent, target, shadowColor)
-    shadowColor = shadowColor or Color3.new(0, 0, 0)
+    shadowColor = shadowColor or Color3.fromRGB(0, 0, 0)
 
-    -- Clean, diffuse drop shadow from a soft 9-sliced sprite (no boxy frame-stack
-    -- banding).  Two layers: a wide ambient halo + a tighter, slightly-dropped key
-    -- shadow for real directional "lift".  Follows the target via Scale sizing.
-    local SHADOW_IMG = "rbxassetid://6014261993"
-    local SLICE      = Rect.new(49, 49, 450, 450)
-    local AMB_SPREAD = 40
-    local KEY_SPREAD = 22
-    local KEY_DROP   = 14
-    local AMB_T      = 0.74
-    local KEY_T      = 0.50
+    -- Soft, ROUNDED drop shadow built from concentric rounded frames.  An image
+    -- 9-slice stretches its (opaque) centre tile into a hard rectangle, which is
+    -- exactly why the previous sprite read as a "square shadow" poking past the
+    -- rounded window.  Stacked rounded frames instead always follow the window
+    -- silhouette and feather outward, so the halo can never be square.  Each ring
+    -- is kept light so it barely tints the translucent (glass) window while still
+    -- giving a clear soft lift around the edges.  Tracks the target via Scale.
+    local LAYERS  = 7      -- number of feathered rings
+    local STEP    = 4      -- px each ring grows beyond the window
+    local DROP    = 6      -- downward key-light offset (px)
+    local BASE_R  = 26     -- matches the MainFrame corner radius
+    local INNER_T = 0.93   -- innermost (tightest) ring transparency
+    local OUTER_T = 0.985  -- outermost (widest) ring transparency
 
     local container = Util.Create("Frame", {
         Name                   = "Shadow",
@@ -628,39 +631,29 @@ function Util.BindShadow(parent, target, shadowColor)
         AnchorPoint            = target.AnchorPoint,
         Position               = target.Position,
         Size                   = target.Size,
-        ZIndex                 = (target.ZIndex or 1) - 1,
+        ZIndex                 = math.max((target.ZIndex or 1) - 1, 0),
         Parent                 = parent,
     })
 
-    local ambient = Util.Create("ImageLabel", {
-        Name                   = "Ambient",
-        BackgroundTransparency = 1,
-        AnchorPoint            = Vector2.new(0.5, 0.5),
-        Position               = UDim2.new(0.5, 0, 0.5, 4),
-        Size                   = UDim2.new(1, AMB_SPREAD * 2, 1, AMB_SPREAD * 2),
-        Image                  = SHADOW_IMG,
-        ImageColor3            = shadowColor,
-        ImageTransparency      = AMB_T,
-        ScaleType              = Enum.ScaleType.Slice,
-        SliceCenter            = SLICE,
-        ZIndex                 = container.ZIndex,
-        Parent                 = container,
-    })
-
-    local key = Util.Create("ImageLabel", {
-        Name                   = "Key",
-        BackgroundTransparency = 1,
-        AnchorPoint            = Vector2.new(0.5, 0.5),
-        Position               = UDim2.new(0.5, 0, 0.5, KEY_DROP),
-        Size                   = UDim2.new(1, KEY_SPREAD * 2, 1, KEY_SPREAD * 2),
-        Image                  = SHADOW_IMG,
-        ImageColor3            = shadowColor,
-        ImageTransparency      = KEY_T,
-        ScaleType              = Enum.ScaleType.Slice,
-        SliceCenter            = SLICE,
-        ZIndex                 = container.ZIndex,
-        Parent                 = container,
-    })
+    local rings = {}
+    for i = 1, LAYERS do
+        local f     = (i - 1) / math.max(LAYERS - 1, 1)
+        local grow  = STEP * i
+        local baseT = INNER_T + (OUTER_T - INNER_T) * f
+        local ring  = Util.Create("Frame", {
+            Name                   = "ShadowRing" .. i,
+            AnchorPoint            = Vector2.new(0.5, 0.5),
+            Position               = UDim2.new(0.5, 0, 0.5, math.floor(DROP * f + 0.5)),
+            Size                   = UDim2.new(1, grow * 2, 1, grow * 2),
+            BackgroundColor3       = shadowColor,
+            BackgroundTransparency = baseT,
+            ZIndex                 = container.ZIndex,
+            Parent                 = container,
+        })
+        Util.Corner(ring, BASE_R + grow)
+        ring:SetAttribute("BaseT", baseT)
+        rings[i] = ring
+    end
 
     local function sync()
         container.AnchorPoint = target.AnchorPoint
@@ -676,14 +669,15 @@ function Util.BindShadow(parent, target, shadowColor)
 
     local function setVisible(visible, dur)
         dur = dur or 0.3
-        Util.Tween(ambient, { ImageTransparency = visible and AMB_T or 1 }, dur)
-        Util.Tween(key,     { ImageTransparency = visible and KEY_T or 1 }, dur)
+        for _, ring in ipairs(rings) do
+            local baseT = ring:GetAttribute("BaseT") or 0.95
+            Util.Tween(ring, { BackgroundTransparency = visible and baseT or 1 }, dur)
+        end
     end
 
     local function setColor(c)
         if not c then return end
-        ambient.ImageColor3 = c
-        key.ImageColor3     = c
+        for _, ring in ipairs(rings) do ring.BackgroundColor3 = c end
     end
 
     local function destroy()
@@ -694,7 +688,7 @@ function Util.BindShadow(parent, target, shadowColor)
 
     return {
         Container  = container,
-        Layers     = { ambient = ambient, key = key, all = { ambient, key } },
+        Rings      = rings,
         Update     = sync,
         SetVisible = setVisible,
         SetColor   = setColor,
@@ -785,7 +779,7 @@ local function makeThemeTracker(getTheme)
     local entries = {}
     local listeners = {}
 
-    local GLASS_ALPHA = { Background = 0.18, Secondary = 0.22, Card = 0.28, Page = 0.18 }
+    local GLASS_ALPHA = { Card = 0.5 }
     local function register(instance, property, themeKey)
         if not instance or not property or not themeKey then return end
         table.insert(entries, { i = instance, p = property, k = themeKey })
@@ -1096,7 +1090,7 @@ function NexusUI:CreateWindow(config)
         Parent = MainFrame,
     })
     local mainStroke = Util.Stroke(MainFrame, Theme.Border, 1.5, 0.3)
-    MainFrame.BackgroundTransparency = 0.15
+    MainFrame.BackgroundTransparency = 0.4
     tracker.Register(MainFrame, "BackgroundColor3", "Background")
     tracker.Register(mainStroke, "Color", "Border")
     Window.MainFrame = MainFrame
@@ -1124,6 +1118,7 @@ function NexusUI:CreateWindow(config)
         Parent           = MainFrame,
     })
     tracker.Register(TopBar, "BackgroundColor3", "Secondary")
+    TopBar.BackgroundTransparency = 1
     local topBarLine = Util.Create("Frame", {
         Size             = UDim2.new(1, 0, 0, 1),
         Position         = UDim2.new(0, 0, 1, 0),
@@ -1274,6 +1269,7 @@ function NexusUI:CreateWindow(config)
         Parent           = MainFrame,
     })
     tracker.Register(Sidebar, "BackgroundColor3", "Secondary")
+    Sidebar.BackgroundTransparency = 1
     local sidebarBorder = Util.Create("Frame", {
         Size             = UDim2.new(0, 1, 1, 0),
         Position         = UDim2.new(1, 0, 0, 0),
@@ -1312,6 +1308,7 @@ function NexusUI:CreateWindow(config)
         Parent           = MainFrame,
     })
     tracker.Register(ContentArea, "BackgroundColor3", "Background")
+    ContentArea.BackgroundTransparency = 1
     Window.ContentArea = ContentArea
 
     -- ═══════════════════════════════
@@ -5189,12 +5186,6 @@ function NexusUI:CreateWindow(config)
             Callback    = function(v) Window:SetDPIScale(v) end,
         })
         tab:CreateToggle({
-            Name        = "Acrylic blur",
-            Description = "Background blur (uses Lighting.BlurEffect)",
-            Default     = cfg.Acrylic,
-            Callback    = function(v) Window:SetAcrylic(v) end,
-        })
-        tab:CreateToggle({
             Name        = "Interaction sounds",
             Default     = cfg.Sounds,
             Callback    = function(v) cfg.Sounds = v end,
@@ -5456,7 +5447,7 @@ function NexusUI:CreateWindow(config)
     local targetSize = cfg.Size
     MainFrame.Size = UDim2.new(0, targetSize.X.Offset, 0, 0)
     task.wait(0.05)
-    Util.Tween(MainFrame, { Size = targetSize, BackgroundTransparency = 0 },
+    Util.Tween(MainFrame, { Size = targetSize, BackgroundTransparency = 0.4 },
         0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
     -- Build the settings tab last so user tabs come first.
