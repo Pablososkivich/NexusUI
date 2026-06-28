@@ -2621,7 +2621,7 @@ function NexusUI:CreateWindow(config)
         Util.Corner(btn, 12)
 
         local activeIndicator = Util.Create("Frame", {
-            Size                  = UDim2.new(0, 3, 0, 18),
+            Size                  = UDim2.new(0, 3, 0, 20),
             Position              = UDim2.new(0, -8, 0.5, 0),
             AnchorPoint           = Vector2.new(0, 0.5),
             BackgroundColor3      = Theme.Accent,
@@ -2632,6 +2632,20 @@ function NexusUI:CreateWindow(config)
         })
         Util.Corner(activeIndicator, 2)
         tracker.Register(activeIndicator, "BackgroundColor3", "Accent")
+
+        local activeGlow = Util.Create("ImageLabel", {
+            Size = UDim2.new(1, 16, 1, 16),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
+            Image = "rbxassetid://6014261993",
+            ImageColor3 = Theme.Accent,
+            ImageTransparency = 1,
+            ScaleType = Enum.ScaleType.Slice,
+            SliceCenter = Rect.new(49, 49, 450, 450),
+            ZIndex = 2, Parent = btn,
+        })
+        tracker.Register(activeGlow, "ImageColor3", "Accent")
 
         if tIcon and string.sub(tIcon, 1, 4) == "rbxa" then
             Util.Create("ImageLabel", {
@@ -2708,6 +2722,7 @@ function NexusUI:CreateWindow(config)
                     end
                     Util.Tween(t._btn, { BackgroundTransparency = 1 }, 0.2)
                     t._activeIndicator.Visible = false
+                    if t._activeGlow then Util.Tween(t._activeGlow, { ImageTransparency = 1 }, 0.2) end
                 end
             end
             page.Visible = true
@@ -2716,6 +2731,7 @@ function NexusUI:CreateWindow(config)
             end
             Util.Tween(btn, { BackgroundColor3 = Theme.Card, BackgroundTransparency = 0 }, 0.2)
             activeIndicator.Visible = true
+            Util.Tween(activeGlow, { ImageTransparency = 0.55 }, 0.2)
             Window.ActiveTab = self
         end
         function Tab:SetIcon(iconText)
@@ -2727,6 +2743,7 @@ function NexusUI:CreateWindow(config)
         end
         Tab._btn = btn
         Tab._activeIndicator = activeIndicator
+        Tab._activeGlow = activeGlow
         btn.MouseButton1Click:Connect(function() Tab:Select() end)
 
         table.insert(Window.Tabs, Tab)
@@ -3017,6 +3034,12 @@ function NexusUI:CreateWindow(config)
                 Window._PlaySound("click")
                 pcall(callback)
             end)
+            frame.MouseButton1Down:Connect(function()
+                if not disabled then Util.Tween(frame, { BackgroundTransparency = 0.25 }, 0.07) end
+            end)
+            frame.MouseButton1Up:Connect(function()
+                if not disabled then Util.Tween(frame, { BackgroundTransparency = 0 }, 0.12) end
+            end)
 
             local reg = registerElement(name, "Button", frame)
             local obj = { Kind = "Button" }
@@ -3135,11 +3158,11 @@ function NexusUI:CreateWindow(config)
                 local d = animated == false and 0 or 0.18
                 if state then
                     Util.Tween(switch, { BackgroundColor3 = Theme.ToggleOn }, d)
-                    Util.Tween(knob,   { Position = UDim2.new(1, -19, 0.5, 0) }, d)
-                    Util.Tween(glow,   { ImageTransparency = 0.55, Size = UDim2.new(0, 46, 0, 46) }, d)
+                    Util.Tween(knob,   { Position = UDim2.new(1, -19, 0.5, 0) }, d, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+                    Util.Tween(glow,   { ImageTransparency = 0.42, Size = UDim2.new(0, 52, 0, 52) }, d)
                 else
                     Util.Tween(switch, { BackgroundColor3 = Theme.ToggleOff }, d)
-                    Util.Tween(knob,   { Position = UDim2.new(0, 3, 0.5, 0) }, d)
+                    Util.Tween(knob,   { Position = UDim2.new(0, 3, 0.5, 0) }, d, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
                     Util.Tween(glow,   { ImageTransparency = 1, Size = UDim2.new(0, 30, 0, 30) }, d)
                 end
             end
@@ -3314,7 +3337,7 @@ function NexusUI:CreateWindow(config)
             Util.Corner(fill, 999)
             tracker.Register(fill, "BackgroundColor3", "SliderFill")
             local knob = Util.Create("Frame", {
-                Size = UDim2.new(0, 14, 0, 14),
+                Size = UDim2.new(0, 16, 0, 16),
                 Position = UDim2.new(0, 0, 0.5, 0),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 BackgroundColor3 = Theme.AccentLight, BorderSizePixel = 0,
@@ -3374,6 +3397,7 @@ function NexusUI:CreateWindow(config)
                 if input.UserInputType ~= Enum.UserInputType.MouseButton1
                 and input.UserInputType ~= Enum.UserInputType.Touch then return end
                 Util.Tween(hint, { TextTransparency = 0, BackgroundTransparency = 0 }, 0.15)
+                Util.Tween(knob, { Size = UDim2.new(0, 20, 0, 20) }, 0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                 activeDragHandler = {
                     onMove = function(pos)
                         local rel = (pos.X - barBG.AbsolutePosition.X) / barBG.AbsoluteSize.X
@@ -3382,6 +3406,7 @@ function NexusUI:CreateWindow(config)
                     end,
                     onRelease = function()
                         Util.Tween(hint, { TextTransparency = 1, BackgroundTransparency = 1 }, 0.15)
+                        Util.Tween(knob, { Size = UDim2.new(0, 16, 0, 16) }, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
                     end,
                 }
                 -- Update immediately for click without drag
