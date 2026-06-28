@@ -12,8 +12,8 @@
 --     :OnChanged/:SetTooltip/:SetDescription/:SetName
 --   * New elements: RangeSlider, Stepper, TextArea, ProgressBar, Tag, Radio,
 --     Segmented, SearchableDropdown, collapsible Section, two-column rows
---   * Resizable window, snap-to-edges, search palette (Ctrl+F),
---     command palette (Ctrl+K), built-in Settings tab
+--   * Resizable window, snap-to-edges, command palette (Ctrl+K),
+--     built-in Settings tab
 --   * Notifications: actions, close button, queue with limit, sounds (opt-in)
 --   * ColorPicker: hex/RGB inputs, alpha, recent colors, before/after preview
 --   * Keybinds: modifier combos (Ctrl/Shift/Alt), mouse buttons, Hold/Toggle/OnRelease
@@ -175,200 +175,200 @@ end
 -- ═══════════════════════════════
 local Themes = {
     Dark = {
-        Background    = Color3.fromRGB(18, 18, 22),
-        Secondary     = Color3.fromRGB(24, 24, 30),
-        Tertiary      = Color3.fromRGB(30, 30, 38),
-        Card          = Color3.fromRGB(28, 28, 36),
-        CardHover     = Color3.fromRGB(35, 35, 45),
-        Accent        = Color3.fromRGB(88, 101, 242),
-        AccentDark    = Color3.fromRGB(71, 82, 196),
-        AccentLight   = Color3.fromRGB(114, 127, 255),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(240, 240, 245),
-        SubText       = Color3.fromRGB(148, 148, 165),
-        DimText       = Color3.fromRGB(95, 95, 115),
-        Disabled      = Color3.fromRGB(60, 60, 75),
-        Border        = Color3.fromRGB(42, 42, 55),
-        BorderStrong  = Color3.fromRGB(60, 60, 80),
-        Hover         = Color3.fromRGB(35, 35, 45),
-        Pressed       = Color3.fromRGB(45, 45, 60),
-        Success       = Color3.fromRGB(67, 181, 129),
-        Error         = Color3.fromRGB(237, 66, 69),
-        Warning       = Color3.fromRGB(250, 166, 26),
-        Info          = Color3.fromRGB(88, 101, 242),
-        ToggleOn      = Color3.fromRGB(67, 181, 129),
-        ToggleOff     = Color3.fromRGB(65, 65, 80),
-        SliderFill    = Color3.fromRGB(88, 101, 242),
-        SliderBG      = Color3.fromRGB(40, 40, 52),
-        Shadow        = Color3.fromRGB(0, 0, 0),
+        Background   = Color3.fromRGB(16, 17, 21),
+        Secondary    = Color3.fromRGB(21, 22, 28),
+        Tertiary     = Color3.fromRGB(27, 29, 37),
+        Card         = Color3.fromRGB(24, 26, 33),
+        CardHover    = Color3.fromRGB(33, 35, 45),
+        Accent       = Color3.fromRGB(99, 102, 241),
+        AccentDark   = Color3.fromRGB(79, 82, 221),
+        AccentLight  = Color3.fromRGB(129, 132, 248),
+        AccentText   = Color3.fromRGB(245, 246, 252),
+        Text         = Color3.fromRGB(236, 238, 244),
+        SubText      = Color3.fromRGB(162, 166, 180),
+        DimText      = Color3.fromRGB(116, 120, 136),
+        Disabled     = Color3.fromRGB(74, 78, 92),
+        Border       = Color3.fromRGB(38, 40, 51),
+        BorderStrong = Color3.fromRGB(54, 58, 72),
+        Hover        = Color3.fromRGB(33, 35, 45),
+        Pressed      = Color3.fromRGB(27, 29, 38),
+        Success      = Color3.fromRGB(54, 197, 126),
+        Error        = Color3.fromRGB(242, 85, 90),
+        Warning      = Color3.fromRGB(245, 181, 71),
+        Info         = Color3.fromRGB(76, 147, 245),
+        ToggleOn     = Color3.fromRGB(99, 102, 241),
+        ToggleOff    = Color3.fromRGB(50, 53, 66),
+        SliderFill   = Color3.fromRGB(99, 102, 241),
+        SliderBG     = Color3.fromRGB(40, 43, 55),
+        Shadow       = Color3.fromRGB(5, 6, 10),
     },
     Light = {
-        Background    = Color3.fromRGB(248, 248, 252),
-        Secondary     = Color3.fromRGB(238, 238, 245),
-        Tertiary      = Color3.fromRGB(228, 228, 238),
-        Card          = Color3.fromRGB(255, 255, 255),
-        CardHover     = Color3.fromRGB(244, 244, 250),
-        Accent        = Color3.fromRGB(88, 101, 242),
-        AccentDark    = Color3.fromRGB(71, 82, 196),
-        AccentLight   = Color3.fromRGB(114, 127, 255),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(20, 20, 30),
-        SubText       = Color3.fromRGB(80, 80, 100),
-        DimText       = Color3.fromRGB(140, 140, 160),
-        Disabled      = Color3.fromRGB(200, 200, 215),
-        Border        = Color3.fromRGB(220, 220, 232),
-        BorderStrong  = Color3.fromRGB(200, 200, 215),
-        Hover         = Color3.fromRGB(240, 240, 248),
-        Pressed       = Color3.fromRGB(228, 228, 240),
-        Success       = Color3.fromRGB(40, 160, 100),
-        Error         = Color3.fromRGB(220, 50, 55),
-        Warning       = Color3.fromRGB(230, 140, 20),
-        Info          = Color3.fromRGB(88, 101, 242),
-        ToggleOn      = Color3.fromRGB(40, 160, 100),
-        ToggleOff     = Color3.fromRGB(205, 205, 215),
-        SliderFill    = Color3.fromRGB(88, 101, 242),
-        SliderBG      = Color3.fromRGB(220, 220, 232),
-        Shadow        = Color3.fromRGB(60, 60, 90),
+        Background   = Color3.fromRGB(245, 246, 249),
+        Secondary    = Color3.fromRGB(255, 255, 255),
+        Tertiary     = Color3.fromRGB(238, 240, 245),
+        Card         = Color3.fromRGB(255, 255, 255),
+        CardHover    = Color3.fromRGB(240, 242, 247),
+        Accent       = Color3.fromRGB(88, 92, 240),
+        AccentDark   = Color3.fromRGB(67, 71, 214),
+        AccentLight  = Color3.fromRGB(124, 128, 248),
+        AccentText   = Color3.fromRGB(255, 255, 255),
+        Text         = Color3.fromRGB(24, 26, 34),
+        SubText      = Color3.fromRGB(92, 98, 115),
+        DimText      = Color3.fromRGB(140, 146, 162),
+        Disabled     = Color3.fromRGB(186, 190, 202),
+        Border       = Color3.fromRGB(224, 227, 234),
+        BorderStrong = Color3.fromRGB(203, 207, 217),
+        Hover        = Color3.fromRGB(238, 240, 246),
+        Pressed      = Color3.fromRGB(229, 232, 240),
+        Success      = Color3.fromRGB(34, 167, 96),
+        Error        = Color3.fromRGB(221, 67, 72),
+        Warning      = Color3.fromRGB(200, 138, 18),
+        Info         = Color3.fromRGB(40, 120, 224),
+        ToggleOn     = Color3.fromRGB(88, 92, 240),
+        ToggleOff    = Color3.fromRGB(205, 209, 219),
+        SliderFill   = Color3.fromRGB(88, 92, 240),
+        SliderBG     = Color3.fromRGB(224, 227, 234),
+        Shadow       = Color3.fromRGB(174, 182, 200),
     },
     Purple = {
-        Background    = Color3.fromRGB(16, 12, 24),
-        Secondary     = Color3.fromRGB(22, 16, 32),
-        Tertiary      = Color3.fromRGB(28, 22, 40),
-        Card          = Color3.fromRGB(26, 20, 38),
-        CardHover     = Color3.fromRGB(35, 28, 48),
-        Accent        = Color3.fromRGB(155, 89, 255),
-        AccentDark    = Color3.fromRGB(128, 65, 217),
-        AccentLight   = Color3.fromRGB(175, 120, 255),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(240, 235, 250),
-        SubText       = Color3.fromRGB(155, 145, 175),
-        DimText       = Color3.fromRGB(100, 90, 120),
-        Disabled      = Color3.fromRGB(70, 60, 90),
-        Border        = Color3.fromRGB(50, 38, 68),
-        BorderStrong  = Color3.fromRGB(70, 55, 95),
-        Hover         = Color3.fromRGB(35, 28, 48),
-        Pressed       = Color3.fromRGB(45, 35, 60),
-        Success       = Color3.fromRGB(67, 181, 129),
-        Error         = Color3.fromRGB(237, 66, 69),
-        Warning       = Color3.fromRGB(250, 166, 26),
-        Info          = Color3.fromRGB(155, 89, 255),
-        ToggleOn      = Color3.fromRGB(155, 89, 255),
-        ToggleOff     = Color3.fromRGB(55, 45, 72),
-        SliderFill    = Color3.fromRGB(155, 89, 255),
-        SliderBG      = Color3.fromRGB(40, 32, 55),
-        Shadow        = Color3.fromRGB(20, 0, 40),
+        Background   = Color3.fromRGB(20, 16, 26),
+        Secondary    = Color3.fromRGB(26, 21, 34),
+        Tertiary     = Color3.fromRGB(33, 27, 43),
+        Card         = Color3.fromRGB(30, 24, 40),
+        CardHover    = Color3.fromRGB(41, 33, 54),
+        Accent       = Color3.fromRGB(167, 110, 246),
+        AccentDark   = Color3.fromRGB(139, 84, 224),
+        AccentLight  = Color3.fromRGB(191, 146, 250),
+        AccentText   = Color3.fromRGB(248, 245, 253),
+        Text         = Color3.fromRGB(238, 234, 246),
+        SubText      = Color3.fromRGB(176, 166, 190),
+        DimText      = Color3.fromRGB(128, 118, 145),
+        Disabled     = Color3.fromRGB(84, 74, 98),
+        Border       = Color3.fromRGB(47, 39, 60),
+        BorderStrong = Color3.fromRGB(64, 54, 81),
+        Hover        = Color3.fromRGB(41, 33, 54),
+        Pressed      = Color3.fromRGB(33, 27, 44),
+        Success      = Color3.fromRGB(54, 197, 126),
+        Error        = Color3.fromRGB(242, 85, 90),
+        Warning      = Color3.fromRGB(245, 181, 71),
+        Info         = Color3.fromRGB(76, 147, 245),
+        ToggleOn     = Color3.fromRGB(167, 110, 246),
+        ToggleOff    = Color3.fromRGB(58, 48, 72),
+        SliderFill   = Color3.fromRGB(167, 110, 246),
+        SliderBG     = Color3.fromRGB(47, 39, 61),
+        Shadow       = Color3.fromRGB(10, 4, 16),
     },
     Ocean = {
-        Background    = Color3.fromRGB(12, 18, 24),
-        Secondary     = Color3.fromRGB(16, 24, 32),
-        Tertiary      = Color3.fromRGB(20, 30, 40),
-        Card          = Color3.fromRGB(18, 28, 38),
-        CardHover     = Color3.fromRGB(25, 38, 50),
-        Accent        = Color3.fromRGB(0, 180, 216),
-        AccentDark    = Color3.fromRGB(0, 150, 180),
-        AccentLight   = Color3.fromRGB(50, 200, 235),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(230, 245, 250),
-        SubText       = Color3.fromRGB(130, 165, 180),
-        DimText       = Color3.fromRGB(80, 110, 125),
-        Disabled      = Color3.fromRGB(50, 75, 90),
-        Border        = Color3.fromRGB(30, 50, 65),
-        BorderStrong  = Color3.fromRGB(50, 75, 95),
-        Hover         = Color3.fromRGB(25, 38, 50),
-        Pressed       = Color3.fromRGB(35, 50, 65),
-        Success       = Color3.fromRGB(67, 181, 129),
-        Error         = Color3.fromRGB(237, 66, 69),
-        Warning       = Color3.fromRGB(250, 166, 26),
-        Info          = Color3.fromRGB(0, 180, 216),
-        ToggleOn      = Color3.fromRGB(0, 180, 216),
-        ToggleOff     = Color3.fromRGB(35, 55, 68),
-        SliderFill    = Color3.fromRGB(0, 180, 216),
-        SliderBG      = Color3.fromRGB(25, 40, 52),
-        Shadow        = Color3.fromRGB(0, 30, 50),
+        Background   = Color3.fromRGB(13, 19, 26),
+        Secondary    = Color3.fromRGB(17, 25, 34),
+        Tertiary     = Color3.fromRGB(23, 33, 44),
+        Card         = Color3.fromRGB(20, 30, 40),
+        CardHover    = Color3.fromRGB(29, 42, 55),
+        Accent       = Color3.fromRGB(46, 170, 220),
+        AccentDark   = Color3.fromRGB(28, 140, 190),
+        AccentLight  = Color3.fromRGB(96, 200, 240),
+        AccentText   = Color3.fromRGB(244, 251, 255),
+        Text         = Color3.fromRGB(228, 238, 245),
+        SubText      = Color3.fromRGB(158, 174, 188),
+        DimText      = Color3.fromRGB(112, 128, 144),
+        Disabled     = Color3.fromRGB(70, 86, 100),
+        Border       = Color3.fromRGB(32, 46, 60),
+        BorderStrong = Color3.fromRGB(46, 64, 82),
+        Hover        = Color3.fromRGB(29, 42, 55),
+        Pressed      = Color3.fromRGB(22, 33, 44),
+        Success      = Color3.fromRGB(46, 200, 150),
+        Error        = Color3.fromRGB(240, 90, 95),
+        Warning      = Color3.fromRGB(245, 185, 75),
+        Info         = Color3.fromRGB(70, 160, 240),
+        ToggleOn     = Color3.fromRGB(46, 170, 220),
+        ToggleOff    = Color3.fromRGB(40, 56, 70),
+        SliderFill   = Color3.fromRGB(46, 170, 220),
+        SliderBG     = Color3.fromRGB(30, 44, 58),
+        Shadow       = Color3.fromRGB(3, 10, 16),
     },
     Blood = {
-        Background    = Color3.fromRGB(20, 12, 14),
-        Secondary     = Color3.fromRGB(28, 16, 18),
-        Tertiary      = Color3.fromRGB(36, 22, 24),
-        Card          = Color3.fromRGB(32, 18, 22),
-        CardHover     = Color3.fromRGB(42, 25, 30),
-        Accent        = Color3.fromRGB(220, 40, 60),
-        AccentDark    = Color3.fromRGB(180, 30, 50),
-        AccentLight   = Color3.fromRGB(245, 70, 90),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(250, 235, 238),
-        SubText       = Color3.fromRGB(175, 140, 148),
-        DimText       = Color3.fromRGB(120, 85, 95),
-        Disabled      = Color3.fromRGB(85, 55, 60),
-        Border        = Color3.fromRGB(60, 35, 40),
-        BorderStrong  = Color3.fromRGB(85, 50, 60),
-        Hover         = Color3.fromRGB(42, 25, 30),
-        Pressed       = Color3.fromRGB(55, 30, 40),
-        Success       = Color3.fromRGB(67, 181, 129),
-        Error         = Color3.fromRGB(237, 66, 69),
-        Warning       = Color3.fromRGB(250, 166, 26),
-        Info          = Color3.fromRGB(220, 40, 60),
-        ToggleOn      = Color3.fromRGB(220, 40, 60),
-        ToggleOff     = Color3.fromRGB(60, 38, 42),
-        SliderFill    = Color3.fromRGB(220, 40, 60),
-        SliderBG      = Color3.fromRGB(45, 28, 32),
-        Shadow        = Color3.fromRGB(40, 0, 10),
+        Background   = Color3.fromRGB(22, 15, 16),
+        Secondary    = Color3.fromRGB(29, 20, 21),
+        Tertiary     = Color3.fromRGB(37, 26, 27),
+        Card         = Color3.fromRGB(33, 23, 24),
+        CardHover    = Color3.fromRGB(46, 32, 33),
+        Accent       = Color3.fromRGB(228, 64, 74),
+        AccentDark   = Color3.fromRGB(196, 44, 54),
+        AccentLight  = Color3.fromRGB(244, 104, 112),
+        AccentText   = Color3.fromRGB(253, 245, 246),
+        Text         = Color3.fromRGB(244, 234, 235),
+        SubText      = Color3.fromRGB(188, 166, 168),
+        DimText      = Color3.fromRGB(140, 116, 118),
+        Disabled     = Color3.fromRGB(94, 72, 74),
+        Border       = Color3.fromRGB(52, 38, 39),
+        BorderStrong = Color3.fromRGB(70, 50, 52),
+        Hover        = Color3.fromRGB(46, 32, 33),
+        Pressed      = Color3.fromRGB(37, 26, 27),
+        Success      = Color3.fromRGB(54, 197, 126),
+        Error        = Color3.fromRGB(240, 70, 78),
+        Warning      = Color3.fromRGB(245, 181, 71),
+        Info         = Color3.fromRGB(76, 147, 245),
+        ToggleOn     = Color3.fromRGB(228, 64, 74),
+        ToggleOff    = Color3.fromRGB(62, 44, 45),
+        SliderFill   = Color3.fromRGB(228, 64, 74),
+        SliderBG     = Color3.fromRGB(52, 37, 38),
+        Shadow       = Color3.fromRGB(14, 3, 4),
     },
     Midnight = {
-        Background    = Color3.fromRGB(10, 10, 18),
-        Secondary     = Color3.fromRGB(14, 14, 26),
-        Tertiary      = Color3.fromRGB(20, 20, 35),
-        Card          = Color3.fromRGB(16, 16, 30),
-        CardHover     = Color3.fromRGB(22, 22, 40),
-        Accent        = Color3.fromRGB(99, 140, 255),
-        AccentDark    = Color3.fromRGB(75, 115, 220),
-        AccentLight   = Color3.fromRGB(130, 165, 255),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(220, 225, 245),
-        SubText       = Color3.fromRGB(120, 130, 165),
-        DimText       = Color3.fromRGB(70, 75, 105),
-        Disabled      = Color3.fromRGB(50, 55, 80),
-        Border        = Color3.fromRGB(32, 32, 55),
-        BorderStrong  = Color3.fromRGB(50, 55, 80),
-        Hover         = Color3.fromRGB(22, 22, 40),
-        Pressed       = Color3.fromRGB(30, 30, 50),
-        Success       = Color3.fromRGB(67, 181, 129),
-        Error         = Color3.fromRGB(237, 66, 69),
-        Warning       = Color3.fromRGB(250, 166, 26),
-        Info          = Color3.fromRGB(99, 140, 255),
-        ToggleOn      = Color3.fromRGB(99, 140, 255),
-        ToggleOff     = Color3.fromRGB(38, 38, 60),
-        SliderFill    = Color3.fromRGB(99, 140, 255),
-        SliderBG      = Color3.fromRGB(28, 28, 48),
-        Shadow        = Color3.fromRGB(0, 0, 25),
+        Background   = Color3.fromRGB(10, 12, 20),
+        Secondary    = Color3.fromRGB(14, 17, 27),
+        Tertiary     = Color3.fromRGB(20, 24, 36),
+        Card         = Color3.fromRGB(17, 21, 32),
+        CardHover    = Color3.fromRGB(26, 31, 46),
+        Accent       = Color3.fromRGB(84, 124, 252),
+        AccentDark   = Color3.fromRGB(58, 96, 226),
+        AccentLight  = Color3.fromRGB(124, 156, 254),
+        AccentText   = Color3.fromRGB(245, 248, 255),
+        Text         = Color3.fromRGB(230, 236, 248),
+        SubText      = Color3.fromRGB(156, 166, 188),
+        DimText      = Color3.fromRGB(108, 118, 142),
+        Disabled     = Color3.fromRGB(66, 76, 98),
+        Border       = Color3.fromRGB(30, 36, 52),
+        BorderStrong = Color3.fromRGB(44, 52, 72),
+        Hover        = Color3.fromRGB(26, 31, 46),
+        Pressed      = Color3.fromRGB(19, 24, 36),
+        Success      = Color3.fromRGB(54, 197, 126),
+        Error        = Color3.fromRGB(242, 85, 90),
+        Warning      = Color3.fromRGB(245, 181, 71),
+        Info         = Color3.fromRGB(84, 150, 252),
+        ToggleOn     = Color3.fromRGB(84, 124, 252),
+        ToggleOff    = Color3.fromRGB(38, 46, 64),
+        SliderFill   = Color3.fromRGB(84, 124, 252),
+        SliderBG     = Color3.fromRGB(28, 35, 52),
+        Shadow       = Color3.fromRGB(2, 3, 8),
     },
     Forest = {
-        Background    = Color3.fromRGB(14, 22, 16),
-        Secondary     = Color3.fromRGB(18, 28, 22),
-        Tertiary      = Color3.fromRGB(24, 36, 28),
-        Card          = Color3.fromRGB(22, 32, 26),
-        CardHover     = Color3.fromRGB(30, 42, 34),
-        Accent        = Color3.fromRGB(86, 200, 130),
-        AccentDark    = Color3.fromRGB(60, 165, 100),
-        AccentLight   = Color3.fromRGB(120, 225, 160),
-        AccentText    = Color3.fromRGB(255, 255, 255),
-        Text          = Color3.fromRGB(232, 245, 235),
-        SubText       = Color3.fromRGB(140, 170, 150),
-        DimText       = Color3.fromRGB(90, 115, 100),
-        Disabled      = Color3.fromRGB(55, 75, 65),
-        Border        = Color3.fromRGB(38, 55, 44),
-        BorderStrong  = Color3.fromRGB(55, 80, 65),
-        Hover         = Color3.fromRGB(30, 42, 34),
-        Pressed       = Color3.fromRGB(38, 52, 42),
-        Success       = Color3.fromRGB(86, 200, 130),
-        Error         = Color3.fromRGB(237, 66, 69),
-        Warning       = Color3.fromRGB(250, 166, 26),
-        Info          = Color3.fromRGB(86, 200, 130),
-        ToggleOn      = Color3.fromRGB(86, 200, 130),
-        ToggleOff     = Color3.fromRGB(45, 60, 50),
-        SliderFill    = Color3.fromRGB(86, 200, 130),
-        SliderBG      = Color3.fromRGB(30, 44, 36),
-        Shadow        = Color3.fromRGB(0, 25, 10),
+        Background   = Color3.fromRGB(14, 20, 16),
+        Secondary    = Color3.fromRGB(18, 26, 21),
+        Tertiary     = Color3.fromRGB(24, 34, 28),
+        Card         = Color3.fromRGB(21, 31, 25),
+        CardHover    = Color3.fromRGB(30, 43, 35),
+        Accent       = Color3.fromRGB(74, 192, 122),
+        AccentDark   = Color3.fromRGB(48, 162, 96),
+        AccentLight  = Color3.fromRGB(118, 218, 158),
+        AccentText   = Color3.fromRGB(244, 253, 248),
+        Text         = Color3.fromRGB(228, 242, 234),
+        SubText      = Color3.fromRGB(158, 182, 168),
+        DimText      = Color3.fromRGB(112, 134, 122),
+        Disabled     = Color3.fromRGB(70, 92, 80),
+        Border       = Color3.fromRGB(32, 48, 38),
+        BorderStrong = Color3.fromRGB(46, 66, 54),
+        Hover        = Color3.fromRGB(30, 43, 35),
+        Pressed      = Color3.fromRGB(22, 33, 27),
+        Success      = Color3.fromRGB(74, 200, 130),
+        Error        = Color3.fromRGB(240, 90, 90),
+        Warning      = Color3.fromRGB(245, 185, 75),
+        Info         = Color3.fromRGB(76, 150, 235),
+        ToggleOn     = Color3.fromRGB(74, 192, 122),
+        ToggleOff    = Color3.fromRGB(40, 58, 47),
+        SliderFill   = Color3.fromRGB(74, 192, 122),
+        SliderBG     = Color3.fromRGB(30, 46, 37),
+        Shadow       = Color3.fromRGB(3, 12, 6),
     },
 }
 
@@ -558,9 +558,31 @@ function Util.MakeDraggable(frame, handle, onDragChanged)
         if input.UserInputType ~= Enum.UserInputType.MouseMovement
            and input.UserInputType ~= Enum.UserInputType.Touch then return end
         local delta = input.Position - dragStart
+        local targetX = startPos.X.Offset + delta.X
+        local targetY = startPos.Y.Offset + delta.Y
+
+        -- Keep the window on-screen: clamp the offset so it can never be
+        -- dragged past the viewport edges. Anchor/scale-agnostic, so it works
+        -- for centered windows, floating panels and the watermark alike.
+        local gui  = frame:FindFirstAncestorWhichIsA("ScreenGui")
+        local view = (gui and gui.AbsoluteSize.X > 0) and gui.AbsoluteSize
+                     or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize)
+        local size = frame.AbsoluteSize
+        if view and view.X > 0 and size.X > 0 then
+            local anchor = frame.AnchorPoint
+            local loX, hiX = math.min(0, view.X - size.X), math.max(0, view.X - size.X)
+            local loY, hiY = math.min(0, view.Y - size.Y), math.max(0, view.Y - size.Y)
+            targetX = Util.Clamp(targetX,
+                loX - startPos.X.Scale * view.X + anchor.X * size.X,
+                hiX - startPos.X.Scale * view.X + anchor.X * size.X)
+            targetY = Util.Clamp(targetY,
+                loY - startPos.Y.Scale * view.Y + anchor.Y * size.Y,
+                hiY - startPos.Y.Scale * view.Y + anchor.Y * size.Y)
+        end
+
         frame.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            startPos.X.Scale, targetX,
+            startPos.Y.Scale, targetY
         )
     end))
 
@@ -611,11 +633,11 @@ function Util.BindShadow(parent, target, shadowColor)
     -- Closer layers are darker; outer layers fade out toward fully transparent.
     -- radiusBonus is added to the target's corner radius so each layer follows the curve.
     local LAYER_SPEC = {
-        { 2,  0.55, 1 },
-        { 6,  0.72, 3 },
-        { 12, 0.84, 5 },
-        { 22, 0.92, 8 },
-        { 36, 0.96, 12 },
+        { 3,  0.50, 1 },
+        { 8,  0.66, 3 },
+        { 16, 0.80, 6 },
+        { 28, 0.90, 10 },
+        { 46, 0.95, 16 },
     }
     local layers = {}
 
@@ -863,10 +885,22 @@ function NexusUI:CreateWindow(config)
     local Theme = Themes[cfg.Theme] or Themes.Dark
     local themeName = cfg.Theme
 
-    -- Cleanup previous instance with the same name
+    -- Unique per-window GUI name so multiple scripts can run side-by-side.
+    -- Each window cleans up ONLY its own previous instance (same Id/Title),
+    -- never another running script's GUI. Pass config.Id for explicit control.
+    local function sanitizeId(s)
+        s = tostring(s or ""):gsub("[^%w_]", "")
+        if s == "" then s = "Window" end
+        return s
+    end
+    local windowId = sanitizeId(config.Id or config.WindowId or cfg.Title)
+    local guiName  = LIB_NAME .. "_" .. windowId
+    Window.Id      = windowId
+
+    -- Clean up our OWN previous instance only (re-running the same script).
     pcall(function()
         local parent = Util.GetGuiParent()
-        local existing = parent:FindFirstChild(LIB_NAME)
+        local existing = parent:FindFirstChild(guiName)
         if existing then existing:Destroy() end
     end)
 
@@ -909,7 +943,7 @@ function NexusUI:CreateWindow(config)
     -- ═══════════════════════════════
     local guiParent = Util.GetGuiParent()
     local ScreenGui = Util.Create("ScreenGui", {
-        Name              = LIB_NAME,
+        Name              = guiName,
         ZIndexBehavior    = Enum.ZIndexBehavior.Sibling,
         ResetOnSpawn      = false,
         IgnoreGuiInset    = true,
@@ -937,7 +971,7 @@ function NexusUI:CreateWindow(config)
     local function ensureBlur()
         if not blurEffect then
             blurEffect = Instance.new("BlurEffect")
-            blurEffect.Name = LIB_NAME .. "_Blur"
+            blurEffect.Name = guiName .. "_Blur"
             blurEffect.Size = 0
             blurEffect.Parent = Lighting
             mainMaid:Give(blurEffect)
@@ -1079,7 +1113,7 @@ function NexusUI:CreateWindow(config)
         ZIndex           = 10,
         Parent           = ScreenGui,
     })
-    Util.Corner(MainFrame, 16)
+    Util.Corner(MainFrame, 14)
     local mainStroke = Util.Stroke(MainFrame, Theme.Border, 1.5, 0.35)
     tracker.Register(MainFrame, "BackgroundColor3", "Background")
     tracker.Register(mainStroke, "Color", "Border")
@@ -1260,7 +1294,6 @@ function NexusUI:CreateWindow(config)
         return btn, lbl
     end
 
-    local searchBtn    = createTopBarButton(Icons.search,   "Search elements (Ctrl+F)")
     local cmdBtn       = createTopBarButton("⌘",            "Command palette (Ctrl+K)")
     local settingsBtn  = createTopBarButton(Icons.settings, "Settings")
     local minimizeBtn, minimizeLbl  = createTopBarButton("─", "Minimize")
@@ -1463,7 +1496,6 @@ function NexusUI:CreateWindow(config)
         return cleanup
     end
 
-    Window:BindTooltip(searchBtn,   "Search (Ctrl+F)")
     Window:BindTooltip(cmdBtn,      "Commands (Ctrl+K)")
     Window:BindTooltip(settingsBtn, "Settings")
     Window:BindTooltip(minimizeBtn, "Minimize")
@@ -1621,15 +1653,6 @@ function NexusUI:CreateWindow(config)
             return
         end
 
-        -- Open search palette (Ctrl+F)
-        if input.KeyCode == Enum.KeyCode.F
-           and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl)
-             or UserInputService:IsKeyDown(Enum.KeyCode.RightControl))
-           and Window.Visible then
-            if Window._OpenSearch then Window:_OpenSearch() end
-            return
-        end
-
         -- Open command palette (Ctrl+K)
         if input.KeyCode == Enum.KeyCode.K
            and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl)
@@ -1666,176 +1689,6 @@ function NexusUI:CreateWindow(config)
     end
     Window._PlaySound = playSound
 
-    -- ═══════════════════════════════
-    -- SEARCH PALETTE (Ctrl+F)
-    -- ═══════════════════════════════
-    do
-        local palette = Util.Create("Frame", {
-            Name              = "SearchPalette",
-            Size              = UDim2.new(0, 480, 0, 360),
-            AnchorPoint       = Vector2.new(0.5, 0.5),
-            Position          = UDim2.new(0.5, 0, 0.5, 0),
-            BackgroundColor3  = Theme.Secondary,
-            BorderSizePixel   = 0,
-            Visible           = false,
-            ZIndex            = 500,
-            Parent            = ScreenGui,
-        })
-        Util.Corner(palette, 14)
-        Util.Stroke(palette, Theme.BorderStrong, 1.5, 0.3)
-        tracker.Register(palette, "BackgroundColor3", "Secondary")
-        local pBlur = Util.Create("TextButton", {
-            Name = "PaletteBlur", Size = UDim2.new(1, 0, 1, 0),
-            BackgroundColor3 = Color3.new(0, 0, 0),
-            BackgroundTransparency = 1, AutoButtonColor = false, Text = "",
-            ZIndex = 499, Visible = false, Parent = ScreenGui,
-        })
-
-        local input = Util.Create("TextBox", {
-            Size = UDim2.new(1, -24, 0, 36),
-            Position = UDim2.new(0, 12, 0, 10),
-            BackgroundColor3 = Theme.Tertiary,
-            BorderSizePixel  = 0,
-            PlaceholderText  = "Search elements, tabs and flags…",
-            PlaceholderColor3 = Theme.DimText,
-            Text = "",
-            TextColor3       = Theme.Text,
-            TextSize         = 14,
-            Font             = Util.Font("regular"),
-            TextXAlignment   = Enum.TextXAlignment.Left,
-            ClearTextOnFocus = false,
-            ZIndex           = 501,
-            Parent           = palette,
-        })
-        Util.Corner(input, 6)
-        Util.Padding(input, 0, 0, 10, 10)
-        tracker.Register(input, "BackgroundColor3", "Tertiary")
-        tracker.Register(input, "TextColor3", "Text")
-
-        local resultList = Util.Create("ScrollingFrame", {
-            Size = UDim2.new(1, -16, 1, -58),
-            Position = UDim2.new(0, 8, 0, 50),
-            BackgroundTransparency = 1,
-            CanvasSize             = UDim2.new(0, 0, 0, 0),
-            AutomaticCanvasSize    = Enum.AutomaticSize.Y,
-            ScrollBarThickness     = 3,
-            ScrollBarImageColor3   = Theme.Accent,
-            ZIndex                 = 501,
-            Parent                 = palette,
-        })
-        Util.ListLayout(resultList, Enum.FillDirection.Vertical, 4,
-            Enum.HorizontalAlignment.Left)
-        Util.Padding(resultList, 4, 4, 6, 6)
-
-        local function clearResults()
-            for _, c in ipairs(resultList:GetChildren()) do
-                if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then
-                    c:Destroy()
-                end
-            end
-        end
-
-        local function makeResult(entry)
-            local row = Util.Create("TextButton", {
-                Size = UDim2.new(1, 0, 0, 36),
-                BackgroundColor3 = Theme.Card,
-                BorderSizePixel = 0,
-                Text = "",
-                AutoButtonColor = false,
-                ZIndex = 502,
-                Parent = resultList,
-            })
-            Util.Corner(row, 6)
-            tracker.Register(row, "BackgroundColor3", "Card")
-            local title = Util.Create("TextLabel", {
-                Size = UDim2.new(1, -24, 0, 16),
-                Position = UDim2.new(0, 12, 0, 4),
-                BackgroundTransparency = 1,
-                Text = entry.label,
-                TextColor3 = Theme.Text,
-                TextSize = 13,
-                Font = Util.Font("semi"),
-                TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex = 503,
-                Parent = row,
-            })
-            tracker.Register(title, "TextColor3", "Text")
-            Util.Create("TextLabel", {
-                Size = UDim2.new(1, -24, 0, 12),
-                Position = UDim2.new(0, 12, 0, 20),
-                BackgroundTransparency = 1,
-                Text = entry.sub,
-                TextColor3 = Theme.DimText,
-                TextSize = 11,
-                Font = Util.Font("regular"),
-                TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex = 503,
-                Parent = row,
-            })
-            row.MouseEnter:Connect(function() Util.Tween(row, { BackgroundColor3 = Theme.Hover }, 0.1) end)
-            row.MouseLeave:Connect(function() Util.Tween(row, { BackgroundColor3 = Theme.Card  }, 0.1) end)
-            row.MouseButton1Click:Connect(function()
-                if entry.action then entry.action() end
-                Window:_CloseSearch()
-            end)
-        end
-
-        local function search(query)
-            clearResults()
-            query = string.lower(query or "")
-            local hits = {}
-            -- search tabs
-            for _, tab in ipairs(Window.Tabs) do
-                if query == "" or string.find(string.lower(tab.Name), query, 1, true) then
-                    table.insert(hits, {
-                        label = "Tab: " .. tab.Name,
-                        sub   = "Switch to tab",
-                        action = function() tab:Select() end,
-                    })
-                end
-            end
-            -- search elements
-            for _, el in ipairs(Window.Elements) do
-                if query == "" or string.find(string.lower(el.name or ""), query, 1, true)
-                              or string.find(string.lower(el.tabName or ""), query, 1, true) then
-                    table.insert(hits, {
-                        label = el.name,
-                        sub   = ("%s · %s"):format(el.tabName or "?", el.kind or "?"),
-                        action = function()
-                            if el.tab then el.tab:Select() end
-                            if el.scrollIntoView then el.scrollIntoView() end
-                        end,
-                    })
-                end
-            end
-            for _, hit in ipairs(hits) do makeResult(hit) end
-        end
-
-        input:GetPropertyChangedSignal("Text"):Connect(function() search(input.Text) end)
-
-        function Window:_OpenSearch()
-            search("")
-            palette.Visible = true
-            pBlur.Visible   = true
-            palette.Size    = UDim2.new(0, 480, 0, 0)
-            Util.Tween(palette, { Size = UDim2.new(0, 480, 0, 360) }, 0.3,
-                Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            Util.Tween(pBlur, { BackgroundTransparency = 0.5 }, 0.2)
-            input:CaptureFocus()
-        end
-
-        function Window:_CloseSearch()
-            Util.Tween(palette, { Size = UDim2.new(0, 480, 0, 0) }, 0.25)
-            Util.Tween(pBlur, { BackgroundTransparency = 1 }, 0.2)
-            task.delay(0.3, function()
-                palette.Visible = false
-                pBlur.Visible   = false
-                input.Text = ""
-            end)
-        end
-        pBlur.MouseButton1Click:Connect(function() Window:_CloseSearch() end)
-        searchBtn.MouseButton1Click:Connect(function() Window:_OpenSearch() end)
-    end
 
     -- ═══════════════════════════════
     -- COMMAND PALETTE (Ctrl+K)
@@ -1890,7 +1743,8 @@ function NexusUI:CreateWindow(config)
             CanvasSize             = UDim2.new(0, 0, 0, 0),
             AutomaticCanvasSize    = Enum.AutomaticSize.Y,
             ScrollBarThickness     = 3,
-            ScrollBarImageColor3   = Theme.Accent,
+            ScrollBarImageColor3   = Theme.BorderStrong,
+            ScrollBarImageTransparency = 0.35,
             ZIndex                 = 501,
             Parent                 = palette,
         })
@@ -2029,7 +1883,7 @@ function NexusUI:CreateWindow(config)
             ZIndex               = 801,
             Parent               = ScreenGui,
         })
-        Util.Corner(dlg, 16)
+        Util.Corner(dlg, 14)
         Util.Stroke(dlg, Theme.BorderStrong, 1.5, 0.3)
         Util.Padding(dlg, 20, 20, 20, 20)
         Util.ListLayout(dlg, Enum.FillDirection.Vertical, 12,
@@ -2184,7 +2038,7 @@ function NexusUI:CreateWindow(config)
             BorderSizePixel = 0,
             Text = "", AutoButtonColor = false, ZIndex = 32, Parent = header,
         })
-        Util.Corner(closeFw, 5)
+        Util.Corner(closeFw, 6)
         tracker.Register(closeFw, "BackgroundColor3", "Tertiary")
         Util.Create("TextLabel", {
             Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
@@ -2201,7 +2055,8 @@ function NexusUI:CreateWindow(config)
             Position = UDim2.new(0, 0, 0, 36),
             BackgroundTransparency = 1,
             ScrollBarThickness = 2,
-            ScrollBarImageColor3 = Theme.Accent,
+            ScrollBarImageColor3 = Theme.BorderStrong,
+            ScrollBarImageTransparency = 0.35,
             CanvasSize = UDim2.new(0, 0, 0, 0),
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             ZIndex = 31, Parent = frame,
@@ -2812,7 +2667,8 @@ function NexusUI:CreateWindow(config)
             Size                  = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             ScrollBarThickness    = 3,
-            ScrollBarImageColor3  = Theme.Accent,
+            ScrollBarImageColor3  = Theme.BorderStrong,
+            ScrollBarImageTransparency = 0.35,
             BorderSizePixel       = 0,
             CanvasSize            = UDim2.new(0, 0, 0, 0),
             AutomaticCanvasSize   = Enum.AutomaticSize.Y,
@@ -3261,7 +3117,7 @@ function NexusUI:CreateWindow(config)
                     Text = "", AutoButtonColor = false,
                     ZIndex = 14, Parent = frame,
                 })
-                Util.Corner(kbBadge, 4)
+                Util.Corner(kbBadge, 6)
                 tracker.Register(kbBadge, "BackgroundColor3", "Tertiary")
                 kbBadgeLbl = Util.Create("TextLabel", {
                     Size = UDim2.new(1, -4, 1, 0), Position = UDim2.new(0, 2, 0, 0),
@@ -3437,7 +3293,7 @@ function NexusUI:CreateWindow(config)
                 TextColor3 = Theme.Accent, TextSize = 12, Font = Util.Font("bold"),
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(valueLbl, 4)
+            Util.Corner(valueLbl, 6)
             tracker.Register(valueLbl, "BackgroundColor3", "Tertiary")
             tracker.Register(valueLbl, "TextColor3", "Accent")
 
@@ -3480,7 +3336,7 @@ function NexusUI:CreateWindow(config)
                 TextTransparency = 1,
                 ZIndex = 17, Parent = knob,
             })
-            Util.Corner(hint, 4)
+            Util.Corner(hint, 6)
             Util.Padding(hint, 2, 2, 4, 4)
             tracker.Register(hint, "BackgroundColor3", "Tertiary")
             tracker.Register(hint, "TextColor3", "Text")
@@ -3613,7 +3469,7 @@ function NexusUI:CreateWindow(config)
                 TextColor3 = Theme.Accent, TextSize = 12, Font = Util.Font("bold"),
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(valueLbl, 4)
+            Util.Corner(valueLbl, 6)
             tracker.Register(valueLbl, "BackgroundColor3", "Tertiary")
             tracker.Register(valueLbl, "TextColor3", "Accent")
 
@@ -3787,7 +3643,7 @@ function NexusUI:CreateWindow(config)
                 ClearTextOnFocus = false,
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(valueBox, 4)
+            Util.Corner(valueBox, 6)
             tracker.Register(valueBox, "BackgroundColor3", "Tertiary")
             tracker.Register(valueBox, "TextColor3", "Text")
 
@@ -3802,7 +3658,7 @@ function NexusUI:CreateWindow(config)
                     AutoButtonColor = false,
                     ZIndex = 14, Parent = frame,
                 })
-                Util.Corner(b, 4)
+                Util.Corner(b, 6)
                 tracker.Register(b, "BackgroundColor3", "Tertiary")
                 tracker.Register(b, "TextColor3", "Text")
                 b.MouseEnter:Connect(function() Util.Tween(b, { BackgroundColor3 = Theme.Hover }, 0.15) end)
@@ -3962,7 +3818,7 @@ function NexusUI:CreateWindow(config)
                     BackgroundColor3 = color or Theme.Tertiary, BorderSizePixel = 0,
                     ZIndex = 15, Parent = row,
                 })
-                Util.Corner(t, 4)
+                Util.Corner(t, 6)
                 Util.Padding(t, 0, 0, 8, 8)
                 Util.Create("TextLabel", {
                     Size = UDim2.new(0, 0, 1, 0),
@@ -4165,7 +4021,7 @@ function NexusUI:CreateWindow(config)
                     BorderSizePixel = 0, Text = "", AutoButtonColor = false,
                     LayoutOrder = i, ZIndex = 15, Parent = row,
                 })
-                Util.Corner(b, 5)
+                Util.Corner(b, 6)
                 local lbl = Util.Create("TextLabel", {
                     Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
                     Text = tostring(opt), TextColor3 = Theme.SubText,
@@ -4251,7 +4107,7 @@ function NexusUI:CreateWindow(config)
                 Text = "", AutoButtonColor = false,
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(trigger, 5)
+            Util.Corner(trigger, 6)
             tracker.Register(trigger, "BackgroundColor3", "Tertiary")
             local valueLbl = Util.Create("TextLabel", {
                 Size = UDim2.new(1, -22, 1, 0),
@@ -4296,7 +4152,7 @@ function NexusUI:CreateWindow(config)
                     ClearTextOnFocus = false,
                     ZIndex = 701, Parent = menu,
                 })
-                Util.Corner(searchBox, 4)
+                Util.Corner(searchBox, 6)
                 Util.Padding(searchBox, 0, 0, 8, 8)
                 tracker.Register(searchBox, "BackgroundColor3", "Tertiary")
                 tracker.Register(searchBox, "TextColor3", "Text")
@@ -4309,7 +4165,8 @@ function NexusUI:CreateWindow(config)
                 CanvasSize = UDim2.new(0, 0, 0, 0),
                 AutomaticCanvasSize = Enum.AutomaticSize.Y,
                 ScrollBarThickness = 2,
-                ScrollBarImageColor3 = Theme.Accent,
+                ScrollBarImageColor3 = Theme.BorderStrong,
+                ScrollBarImageTransparency = 0.35,
                 ZIndex = 701, Parent = menu,
             })
             Util.ListLayout(optScroll, Enum.FillDirection.Vertical, 2)
@@ -4384,7 +4241,7 @@ function NexusUI:CreateWindow(config)
                             BorderSizePixel = 0, Text = "", AutoButtonColor = false,
                             LayoutOrder = i, ZIndex = 702, Parent = optScroll,
                         })
-                        Util.Corner(row, 4)
+                        Util.Corner(row, 6)
                         tracker.Register(row, "BackgroundColor3", "Card")
                         local lbl = Util.Create("TextLabel", {
                             Size = UDim2.new(1, -28, 1, 0),
@@ -4602,7 +4459,7 @@ function NexusUI:CreateWindow(config)
                 ClearTextOnFocus = clearOnFocus,
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(tb, 4)
+            Util.Corner(tb, 6)
             Util.Padding(tb, 0, 0, 8, 8)
             local stroke = Util.Stroke(tb, Theme.Border, 1, 0.6)
             tracker.Register(tb, "BackgroundColor3", "Tertiary")
@@ -4773,7 +4630,7 @@ function NexusUI:CreateWindow(config)
                 Text = "", AutoButtonColor = false,
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(trigger, 4)
+            Util.Corner(trigger, 6)
             tracker.Register(trigger, "BackgroundColor3", "Tertiary")
             local triggerLbl = Util.Create("TextLabel", {
                 Size = UDim2.new(1, -4, 1, 0), Position = UDim2.new(0, 2, 0, 0),
@@ -4792,7 +4649,7 @@ function NexusUI:CreateWindow(config)
                 Text = "", AutoButtonColor = false,
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(modeBtn, 4)
+            Util.Corner(modeBtn, 6)
             tracker.Register(modeBtn, "BackgroundColor3", "Tertiary")
             local modeLbl = Util.Create("TextLabel", {
                 Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
@@ -4906,7 +4763,7 @@ function NexusUI:CreateWindow(config)
                 Text = "", AutoButtonColor = false,
                 ZIndex = 14, Parent = frame,
             })
-            Util.Corner(preview, 4)
+            Util.Corner(preview, 6)
             Util.Stroke(preview, Color3.new(1, 1, 1), 1, 0.4)
 
             -- ═════════════ Popup ═════════════
@@ -4964,7 +4821,7 @@ function NexusUI:CreateWindow(config)
                 Position = UDim2.new(0, 8, 0, 134),
                 BorderSizePixel = 0, ZIndex = 751, Parent = popup,
             })
-            Util.Corner(hueBar, 4)
+            Util.Corner(hueBar, 6)
             Util.Create("UIGradient", {
                 Color = ColorSequence.new({
                     ColorSequenceKeypoint.new(0/6,   Color3.fromRGB(255, 0, 0)),
@@ -4995,7 +4852,7 @@ function NexusUI:CreateWindow(config)
                     BackgroundColor3 = Color3.fromRGB(255, 0, 0),
                     BorderSizePixel = 0, ZIndex = 751, Parent = popup,
                 })
-                Util.Corner(alphaBar, 4)
+                Util.Corner(alphaBar, 6)
                 Util.Create("UIGradient", {
                     Transparency = NumberSequence.new({
                         NumberSequenceKeypoint.new(0, 1),
@@ -5022,14 +4879,14 @@ function NexusUI:CreateWindow(config)
                 BackgroundColor3 = default, BorderSizePixel = 0,
                 ZIndex = 751, Parent = popup,
             })
-            Util.Corner(oldSwatch, 4); Util.Stroke(oldSwatch, Theme.Border, 1, 0.4)
+            Util.Corner(oldSwatch, 6); Util.Stroke(oldSwatch, Theme.Border, 1, 0.4)
             local newSwatch = Util.Create("Frame", {
                 Size = UDim2.new(0, 28, 0, 24),
                 Position = UDim2.new(0, 38, 0, inputsY),
                 BackgroundColor3 = default, BorderSizePixel = 0,
                 ZIndex = 751, Parent = popup,
             })
-            Util.Corner(newSwatch, 4); Util.Stroke(newSwatch, Theme.Border, 1, 0.4)
+            Util.Corner(newSwatch, 6); Util.Stroke(newSwatch, Theme.Border, 1, 0.4)
 
             -- Hex / RGB inputs
             local hexBox = Util.Create("TextBox", {
@@ -5041,7 +4898,7 @@ function NexusUI:CreateWindow(config)
                 ClearTextOnFocus = false,
                 ZIndex = 751, Parent = popup,
             })
-            Util.Corner(hexBox, 4); Util.Padding(hexBox, 0, 0, 6, 6)
+            Util.Corner(hexBox, 6); Util.Padding(hexBox, 0, 0, 6, 6)
             tracker.Register(hexBox, "BackgroundColor3", "Tertiary")
             tracker.Register(hexBox, "TextColor3", "Text")
 
@@ -5056,7 +4913,7 @@ function NexusUI:CreateWindow(config)
                     ClearTextOnFocus = false,
                     ZIndex = 751, Parent = popup,
                 })
-                Util.Corner(b, 4); Util.Padding(b, 0, 0, 4, 4)
+                Util.Corner(b, 6); Util.Padding(b, 0, 0, 4, 4)
                 tracker.Register(b, "BackgroundColor3", "Tertiary")
                 tracker.Register(b, "TextColor3", "Text")
                 return b
@@ -5087,7 +4944,7 @@ function NexusUI:CreateWindow(config)
                         Text = "", AutoButtonColor = false,
                         LayoutOrder = i, ZIndex = 752, Parent = recentRow,
                     })
-                    Util.Corner(sw, 4); Util.Stroke(sw, Theme.Border, 1, 0.4)
+                    Util.Corner(sw, 6); Util.Stroke(sw, Theme.Border, 1, 0.4)
                     sw.MouseButton1Click:Connect(function() obj:Set(col) end)
                 end
             end
@@ -5406,7 +5263,7 @@ function NexusUI:CreateWindow(config)
         tab:CreateParagraph({
             Title = LIB_NAME .. " v" .. LIB_VERSION,
             Content = "Professional UI library for Roblox. Press " .. tostring(cfg.KeyBind) ..
-                " to toggle this window. Use Ctrl+F to search elements, Ctrl+K for commands.",
+                " to toggle this window. Use Ctrl+K for the command palette.",
         })
         refreshList()
         return tab
@@ -5540,7 +5397,7 @@ function NexusUI:CreateWindow(config)
                     AutoButtonColor = false,
                     ZIndex = 204, Parent = rowA,
                 })
-                Util.Corner(ab, 4); Util.Padding(ab, 0, 0, 6, 6)
+                Util.Corner(ab, 6); Util.Padding(ab, 0, 0, 6, 6)
                 tracker.Register(ab, "BackgroundColor3", "Tertiary")
                 tracker.Register(ab, "TextColor3", "Text")
                 ab.MouseEnter:Connect(function() Util.Tween(ab, { BackgroundColor3 = Theme.Hover }, 0.1) end)
