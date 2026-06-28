@@ -895,7 +895,6 @@ function NexusUI:CreateWindow(config)
     end
     local windowId = sanitizeId(config.Id or config.WindowId or cfg.Title)
     local guiName  = LIB_NAME .. "_" .. windowId
-    Window.Id      = windowId
 
     -- Clean up our OWN previous instance only (re-running the same script).
     pcall(function()
@@ -912,6 +911,7 @@ function NexusUI:CreateWindow(config)
     -- WINDOW STATE
     -- ═══════════════════════════════
     local Window = {
+        Id              = windowId,
         Tabs            = {},
         ActiveTab       = nil,
         Theme           = Theme,
