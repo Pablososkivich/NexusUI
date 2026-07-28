@@ -2919,7 +2919,7 @@ function NexusUI:CreateWindow(config)
             })
             Util.Corner(knob, 999)
             local glow = Util.Create("ImageLabel", {
-                Size = UDim2.new(0, 30, 0, 30),
+                Size = UDim2.new(1, 6, 1, 6),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 BackgroundTransparency = 1,
@@ -2930,6 +2930,7 @@ function NexusUI:CreateWindow(config)
                 SliceCenter = Rect.new(49, 49, 450, 450),
                 ZIndex = 14, Parent = switch,
             })
+            tracker.Register(glow, "ImageColor3", "ToggleOn")
 
             -- Optional keybind badge (shows current key)
             local kbBadge, kbBadgeLbl
@@ -2961,11 +2962,11 @@ function NexusUI:CreateWindow(config)
                 if state then
                     Util.Tween(switch, { BackgroundColor3 = Theme.ToggleOn }, d)
                     Util.Tween(knob,   { Position = UDim2.new(1, -19, 0.5, 0) }, d, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-                    Util.Tween(glow,   { ImageTransparency = 0.42, Size = UDim2.new(0, 52, 0, 52) }, d)
+                    Util.Tween(glow,   { ImageTransparency = 0.55 }, d)
                 else
                     Util.Tween(switch, { BackgroundColor3 = Theme.ToggleOff }, d)
                     Util.Tween(knob,   { Position = UDim2.new(0, 3, 0.5, 0) }, d, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-                    Util.Tween(glow,   { ImageTransparency = 1, Size = UDim2.new(0, 30, 0, 30) }, d)
+                    Util.Tween(glow,   { ImageTransparency = 1 }, d)
                 end
             end
             apply(false)
