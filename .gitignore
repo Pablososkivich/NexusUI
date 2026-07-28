@@ -1,0 +1,16 @@
+# NexusUI v4 — Lua/Luau .gitignore
+# Editor noise
+*.swp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Local notes that shouldn't get pushed
+local_notes/
+parts/
+nexusui_audit.md
