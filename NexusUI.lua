@@ -466,43 +466,6 @@ function Util.ListLayout(parent, direction, padding, horizontalAlign, verticalAl
     return l
 end
 
-function Util.GridLayout(parent, cellSize, cellPadding)
-    local g = Instance.new("UIGridLayout")
-    g.CellSize    = cellSize    or UDim2.new(0, 100, 0, 30)
-    g.CellPadding = cellPadding or UDim2.new(0, 6, 0, 6)
-    g.SortOrder   = Enum.SortOrder.LayoutOrder
-    g.Parent = parent
-    return g
-end
-
-function Util.AspectRatio(parent, ratio)
-    local r = Instance.new("UIAspectRatioConstraint")
-    r.AspectRatio = ratio or 1
-    r.Parent = parent
-    return r
-end
-
--- Hover binder with cleanup (returns a cleanup function)
-function Util.BindHover(gui, onEnter, onLeave)
-    local enterConn = gui.MouseEnter:Connect(onEnter or function() end)
-    local leaveConn = gui.MouseLeave:Connect(onLeave or function() end)
-    return function()
-        enterConn:Disconnect()
-        leaveConn:Disconnect()
-    end
-end
-
--- Color-fade hover helper (returns cleanup)
-function Util.HoverFade(gui, normalColor, hoverColor, duration)
-    duration = duration or 0.15
-    local cleanup = Util.BindHover(
-        gui,
-        function() Util.Tween(gui, { BackgroundColor3 = hoverColor }, duration) end,
-        function() Util.Tween(gui, { BackgroundColor3 = normalColor }, duration) end
-    )
-    return cleanup
-end
-
 -- Material-style ripple effect with cleanup
 function Util.Ripple(button)
     button.ClipsDescendants = true
@@ -533,7 +496,9 @@ function Util.Ripple(button)
 end
 
 -- Drag handler attached to `handle`, moves `frame`.  No leaks: returns a cleanup function.
-function Util.MakeDraggable(frame, handle, onDragChanged)
+-- While dragging the frame moves freely; on release it animates back into the viewport
+-- so the title bar is always reachable.  Position.Scale terms are preserved throughout.
+function Util.MakeDraggable(frame, handle, onDragChanged, snapToEdges)
     handle = handle or frame
     local dragging = false
     local dragStart, startPos
@@ -542,6 +507,31 @@ function Util.MakeDraggable(frame, handle, onDragChanged)
     local function release()
         dragging = false
         if onDragChanged then onDragChanged("end") end
+
+        local gui = frame:FindFirstAncestorWhichIsA("ScreenGui")
+        local view = (gui and gui.AbsoluteSize.X > 0) and gui.AbsoluteSize
+                     or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize)
+        if not view or view.X <= 0 then return end
+        local scaleObj = gui and gui:FindFirstChildWhichIsA("UIScale")
+        local scale = (scaleObj and scaleObj.Scale) or 1
+        if scale <= 0 then scale = 1 end
+        local size = frame.AbsoluteSize
+        local pos  = frame.Position
+        local absX = frame.AbsolutePosition.X
+        local absY = frame.AbsolutePosition.Y
+        -- Return the window FULLY into the visible area (small inset from edges).
+        -- If it is larger than the viewport it is aligned to the top-left corner.
+        local MARGIN = 8
+        local maxX = math.max(MARGIN, view.X - size.X - MARGIN)
+        local maxY = math.max(MARGIN, view.Y - size.Y - MARGIN)
+        local clampedAbsX = Util.Clamp(absX, MARGIN, maxX)
+        local clampedAbsY = Util.Clamp(absY, MARGIN, maxY)
+        if clampedAbsX == absX and clampedAbsY == absY then return end
+        local newOffsetX = pos.X.Offset + (clampedAbsX - absX) / scale
+        local newOffsetY = pos.Y.Offset + (clampedAbsY - absY) / scale
+        Util.Tween(frame,
+            { Position = UDim2.new(pos.X.Scale, newOffsetX, pos.Y.Scale, newOffsetY) },
+            0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
     end
 
     table.insert(conns, handle.InputBegan:Connect(function(input)
@@ -558,31 +548,9 @@ function Util.MakeDraggable(frame, handle, onDragChanged)
         if input.UserInputType ~= Enum.UserInputType.MouseMovement
            and input.UserInputType ~= Enum.UserInputType.Touch then return end
         local delta = input.Position - dragStart
-        local targetX = startPos.X.Offset + delta.X
-        local targetY = startPos.Y.Offset + delta.Y
-
-        -- Keep the window on-screen: clamp the offset so it can never be
-        -- dragged past the viewport edges. Anchor/scale-agnostic, so it works
-        -- for centered windows, floating panels and the watermark alike.
-        local gui  = frame:FindFirstAncestorWhichIsA("ScreenGui")
-        local view = (gui and gui.AbsoluteSize.X > 0) and gui.AbsoluteSize
-                     or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize)
-        local size = frame.AbsoluteSize
-        if view and view.X > 0 and size.X > 0 then
-            local anchor = frame.AnchorPoint
-            local loX, hiX = math.min(0, view.X - size.X), math.max(0, view.X - size.X)
-            local loY, hiY = math.min(0, view.Y - size.Y), math.max(0, view.Y - size.Y)
-            targetX = Util.Clamp(targetX,
-                loX - startPos.X.Scale * view.X + anchor.X * size.X,
-                hiX - startPos.X.Scale * view.X + anchor.X * size.X)
-            targetY = Util.Clamp(targetY,
-                loY - startPos.Y.Scale * view.Y + anchor.Y * size.Y,
-                hiY - startPos.Y.Scale * view.Y + anchor.Y * size.Y)
-        end
-
         frame.Position = UDim2.new(
-            startPos.X.Scale, targetX,
-            startPos.Y.Scale, targetY
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
         )
     end))
 
@@ -747,13 +715,6 @@ function Util.Font(weight)
     return Enum.Font.Gotham
 end
 
--- Format any value to safe display string
-function Util.ToDisplay(v)
-    if v == nil       then return "" end
-    if type(v) == "string" then return v end
-    return tostring(v)
-end
-
 -- Round number to N decimals
 function Util.Round(value, decimals)
     decimals = decimals or 0
@@ -827,7 +788,7 @@ function NexusUI:CreateWindow(config)
     config = config or {}
     local cfg = {
         Title       = config.Title       or "NexusUI",
-        SubTitle    = config.SubTitle    or "v" .. LIB_VERSION,
+        SubTitle    = config.SubTitle    or config.Subtitle or "v" .. LIB_VERSION,
         Theme       = config.Theme       or "Dark",
         Size        = config.Size        or UDim2.new(0, 620, 0, 460),
         MinSize     = config.MinSize     or Vector2.new(420, 320),
@@ -843,11 +804,13 @@ function NexusUI:CreateWindow(config)
         DPIScale    = config.DPIScale or 1,
         BindKeybindsToInput = (config.BindKeybindsToInput ~= false), -- ignore keybinds while a TextBox is focused
         ShowSettingsTab = (config.ShowSettingsTab ~= false),
+        Watermark   = (config.Watermark == true),
         Icon        = config.Icon,  -- override letter icon with rbxassetid://...
     }
     if type(cfg.Theme) == "table" then
-        NexusUI.RegisterTheme("__user_" .. tostring(math.random(1, 1e6)), cfg.Theme)
-        cfg.Theme = "__user_" .. tostring(math.random(1, 1e6))
+        local uid = "__user_" .. tostring(math.random(1, 1e6))
+        NexusUI.RegisterTheme(uid, cfg.Theme)
+        cfg.Theme = uid
     end
     local Theme = Themes[cfg.Theme] or Themes.Dark
     local themeName = cfg.Theme
@@ -1374,26 +1337,9 @@ function NexusUI:CreateWindow(config)
     end
 
     -- ═══════════════════════════════
-    -- WINDOW SNAP TO EDGES (drag near edge)
+    -- WINDOW DRAG (viewport-constrained animate-back handled in MakeDraggable)
     -- ═══════════════════════════════
-    local cleanupDrag = Util.MakeDraggable(MainFrame, TopBar, function(state)
-        if state == "end" then
-            local pos = MainFrame.AbsolutePosition
-            local size = MainFrame.AbsoluteSize
-            local screen = ScreenGui.AbsoluteSize
-            local margin = 12
-            local newX, newY = nil, nil
-            if pos.X < margin then newX = 0 end
-            if pos.X + size.X > screen.X - margin then newX = screen.X - size.X end
-            if pos.Y < margin then newY = 0 end
-            if pos.Y + size.Y > screen.Y - margin then newY = screen.Y - size.Y end
-            if newX or newY then
-                Util.Tween(MainFrame,
-                    { Position = UDim2.new(0, newX or pos.X, 0, newY or pos.Y) },
-                    0.2)
-            end
-        end
-    end)
+    local cleanupDrag = Util.MakeDraggable(MainFrame, TopBar)
     mainMaid:Give(cleanupDrag)
 
     -- ═══════════════════════════════
@@ -1802,6 +1748,9 @@ function NexusUI:CreateWindow(config)
     end
 
     function Window:RegisterCommand(name, description, callback)
+        if type(description) == "function" then
+            callback, description = description, nil
+        end
         Window.Commands[name] = { description = description, callback = callback }
     end
 
@@ -2282,101 +2231,6 @@ function NexusUI:CreateWindow(config)
     end
 
     -- ═══════════════════════════════
-    -- SPLASH / LOADING SCREEN
-    -- ═══════════════════════════════
-    function NexusUI:Splash(splashCfg)
-        splashCfg = splashCfg or {}
-        local splashTitle = splashCfg.Title or "Loading…"
-        local subtitle    = splashCfg.SubTitle or ""
-        local duration    = splashCfg.Duration or 2
-        local theme       = Themes[splashCfg.Theme or "Dark"] or Themes.Dark
-
-        local parent = Util.GetGuiParent()
-        local sg = Util.Create("ScreenGui", {
-            Name = LIB_NAME .. "_Splash",
-            ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-            ResetOnSpawn = false, IgnoreGuiInset = true,
-            DisplayOrder = 999, Parent = parent,
-        })
-        local dim = Util.Create("Frame", {
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundColor3 = Color3.new(0, 0, 0),
-            BackgroundTransparency = 0.5,
-            BorderSizePixel = 0, ZIndex = 1, Parent = sg,
-        })
-        local card = Util.Create("Frame", {
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            Size = UDim2.new(0, 360, 0, 140),
-            BackgroundColor3 = theme.Background,
-            BorderSizePixel = 0, ZIndex = 2, Parent = sg,
-        })
-        Util.Corner(card, 14)
-        Util.Stroke(card, theme.BorderStrong, 1.5, 0.3)
-
-        local accent = Util.Create("Frame", {
-            Size = UDim2.new(1, 0, 0, 3),
-            BackgroundColor3 = theme.Accent,
-            BorderSizePixel = 0, ZIndex = 3, Parent = card,
-        })
-        Util.AnimatedAccent(accent, theme)
-
-        Util.Create("TextLabel", {
-            Size = UDim2.new(1, -40, 0, 24),
-            Position = UDim2.new(0, 20, 0, 20),
-            BackgroundTransparency = 1,
-            Text = splashTitle, TextColor3 = theme.Text,
-            TextSize = 18, Font = Util.Font("bold"),
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 3, Parent = card,
-        })
-        Util.Create("TextLabel", {
-            Size = UDim2.new(1, -40, 0, 16),
-            Position = UDim2.new(0, 20, 0, 48),
-            BackgroundTransparency = 1,
-            Text = subtitle, TextColor3 = theme.DimText,
-            TextSize = 12, Font = Util.Font("regular"),
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 3, Parent = card,
-        })
-
-        local barBg = Util.Create("Frame", {
-            Size = UDim2.new(1, -40, 0, 6),
-            Position = UDim2.new(0, 20, 1, -26),
-            BackgroundColor3 = theme.Tertiary,
-            BorderSizePixel = 0, ZIndex = 3, Parent = card,
-        })
-        Util.Corner(barBg, 3)
-        local bar = Util.Create("Frame", {
-            Size = UDim2.new(0, 0, 1, 0),
-            BackgroundColor3 = theme.Accent,
-            BorderSizePixel = 0, ZIndex = 4, Parent = barBg,
-        })
-        Util.Corner(bar, 3)
-
-        Util.Tween(bar, { Size = UDim2.new(1, 0, 1, 0) }, duration, Enum.EasingStyle.Linear)
-        task.delay(duration + 0.2, function()
-            Util.Tween(dim,  { BackgroundTransparency = 1 }, 0.3)
-            Util.Tween(card, { Size = UDim2.new(0, 360, 0, 0) }, 0.3,
-                Enum.EasingStyle.Back, Enum.EasingDirection.In)
-            task.wait(0.35)
-            sg:Destroy()
-        end)
-
-        local obj = {}
-        function obj:SetProgress(p)
-            bar:TweenSize(UDim2.new(math.clamp(p, 0, 1), 0, 1, 0),
-                Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
-        end
-        function obj:Close()
-            Util.Tween(dim, { BackgroundTransparency = 1 }, 0.2)
-            Util.Tween(card, { Size = UDim2.new(0, 360, 0, 0) }, 0.25)
-            task.wait(0.3); sg:Destroy()
-        end
-        return obj
-    end
-
-    -- ═══════════════════════════════
     -- CONFIG SAVE / LOAD
     -- ═══════════════════════════════
     local function configPath(name)
@@ -2540,19 +2394,6 @@ function NexusUI:CreateWindow(config)
             })
         end)
         return ok
-    end
-
-    -- ═══════════════════════════════
-    -- UPDATE CHECKER
-    -- ═══════════════════════════════
-    function NexusUI:CheckUpdate(versionUrl)
-        local ok, response = pcall(function()
-            return game:HttpGet(versionUrl)
-        end)
-        if not ok or type(response) ~= "string" then return false end
-        local remote = response:match("(%d+%.%d+%.%d+)") or response
-        if remote == LIB_VERSION then return false, remote end
-        return remote ~= LIB_VERSION, remote
     end
 
     -- ═══════════════════════════════
@@ -2755,10 +2596,6 @@ function NexusUI:CreateWindow(config)
             end
             table.insert(Tab._elements, obj)
             return obj
-        end
-
-        local function makeName(cfg2)
-            return (type(cfg2) == "table" and (cfg2.Name or cfg2.Title)) or tostring(cfg2 or "Element")
         end
 
         -- ═══════════════════════════════
@@ -5388,7 +5225,7 @@ function NexusUI:CreateWindow(config)
                 ab.MouseLeave:Connect(function() Util.Tween(ab, { BackgroundColor3 = Theme.Tertiary }, 0.1) end)
                 ab.MouseButton1Click:Connect(function()
                     pcall(action.Callback or function() end)
-                    closeBtn2.MouseButton1Click:Wait()  -- noop guard
+                    close()
                 end)
             end
         end
@@ -5466,8 +5303,121 @@ function NexusUI:CreateWindow(config)
         task.defer(function() Window:LoadConfig(cfg.AutoLoad) end)
     end
 
+    -- Auto-create the watermark when requested via config.
+    if cfg.Watermark then
+        Window:CreateWatermark({ Text = cfg.Title })
+    end
+
     return Window
 end  -- CreateWindow
+
+-- ═══════════════════════════════
+-- SPLASH / LOADING SCREEN
+-- ═══════════════════════════════
+function NexusUI:Splash(splashCfg)
+    splashCfg = splashCfg or {}
+    local splashTitle = splashCfg.Title or "Loading…"
+    local subtitle    = splashCfg.SubTitle or ""
+    local duration    = splashCfg.Duration or 2
+    local theme       = Themes[splashCfg.Theme or "Dark"] or Themes.Dark
+
+    local parent = Util.GetGuiParent()
+    local sg = Util.Create("ScreenGui", {
+        Name = LIB_NAME .. "_Splash",
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        ResetOnSpawn = false, IgnoreGuiInset = true,
+        DisplayOrder = 999, Parent = parent,
+    })
+    local dim = Util.Create("Frame", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = Color3.new(0, 0, 0),
+        BackgroundTransparency = 0.5,
+        BorderSizePixel = 0, ZIndex = 1, Parent = sg,
+    })
+    local card = Util.Create("Frame", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, 360, 0, 140),
+        BackgroundColor3 = theme.Background,
+        BorderSizePixel = 0, ZIndex = 2, Parent = sg,
+    })
+    Util.Corner(card, 14)
+    Util.Stroke(card, theme.BorderStrong, 1.5, 0.3)
+
+    local accent = Util.Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 3),
+        BackgroundColor3 = theme.Accent,
+        BorderSizePixel = 0, ZIndex = 3, Parent = card,
+    })
+    Util.AnimatedAccent(accent, theme)
+
+    Util.Create("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 24),
+        Position = UDim2.new(0, 20, 0, 20),
+        BackgroundTransparency = 1,
+        Text = splashTitle, TextColor3 = theme.Text,
+        TextSize = 18, Font = Util.Font("bold"),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 3, Parent = card,
+    })
+    Util.Create("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 16),
+        Position = UDim2.new(0, 20, 0, 48),
+        BackgroundTransparency = 1,
+        Text = subtitle, TextColor3 = theme.DimText,
+        TextSize = 12, Font = Util.Font("regular"),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 3, Parent = card,
+    })
+
+    local barBg = Util.Create("Frame", {
+        Size = UDim2.new(1, -40, 0, 6),
+        Position = UDim2.new(0, 20, 1, -26),
+        BackgroundColor3 = theme.Tertiary,
+        BorderSizePixel = 0, ZIndex = 3, Parent = card,
+    })
+    Util.Corner(barBg, 3)
+    local bar = Util.Create("Frame", {
+        Size = UDim2.new(0, 0, 1, 0),
+        BackgroundColor3 = theme.Accent,
+        BorderSizePixel = 0, ZIndex = 4, Parent = barBg,
+    })
+    Util.Corner(bar, 3)
+
+    Util.Tween(bar, { Size = UDim2.new(1, 0, 1, 0) }, duration, Enum.EasingStyle.Linear)
+    task.delay(duration + 0.2, function()
+        Util.Tween(dim,  { BackgroundTransparency = 1 }, 0.3)
+        Util.Tween(card, { Size = UDim2.new(0, 360, 0, 0) }, 0.3,
+            Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        task.wait(0.35)
+        sg:Destroy()
+    end)
+
+    local obj = {}
+    function obj:SetProgress(p)
+        bar:TweenSize(UDim2.new(math.clamp(p, 0, 1), 0, 1, 0),
+            Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+    end
+    function obj:Close()
+        Util.Tween(dim, { BackgroundTransparency = 1 }, 0.2)
+        Util.Tween(card, { Size = UDim2.new(0, 360, 0, 0) }, 0.25)
+        task.wait(0.3); sg:Destroy()
+    end
+    return obj
+end
+
+-- ═══════════════════════════════
+-- UPDATE CHECKER
+-- ═══════════════════════════════
+function NexusUI:CheckUpdate(versionUrl)
+    local ok, response = pcall(function()
+        return game:HttpGet(versionUrl)
+    end)
+    if not ok or type(response) ~= "string" then return false end
+    local remote = response:match("(%d+%.%d+%.%d+)") or response
+    if remote == LIB_VERSION then return false, remote end
+    return remote ~= LIB_VERSION, remote
+end
 
 -- ═══════════════════════════════
 -- TOP-LEVEL NOTIFY (forwards to last active window)
